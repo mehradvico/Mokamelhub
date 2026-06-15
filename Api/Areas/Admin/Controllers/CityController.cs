@@ -1,0 +1,88 @@
+﻿using Application.Common.Dto.Result;
+using Application.Services.CommonSrv.CitySrv.Dto;
+using Application.Services.CommonSrv.CitySrv.Iface;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Api.Areas.Admin.Controllers
+{
+    /// <summary>
+    /// مدیریت شهرها
+    /// </summary>
+    ///
+    [Area("Admin")]
+    [Route("api/[area]/[controller]")]
+    [ApiController]
+    [Authorize]
+    public class CityController : ControllerBase
+    {
+        private ICityService cityService;
+        /// <summary>
+        /// مدیریت شهر ها
+        /// </summary>
+        ///
+        public CityController(ICityService cityService)
+        {
+            this.cityService = cityService;
+        }
+        /// <summary>
+        ///  اطلاعات آیتم 
+        /// </summary>
+        /// <param name="id">شناسه دسته بندی</param>
+        /// <returns>
+        /// </returns>
+        [HttpGet("{id}")]
+        [ProducesResponseType(typeof(BaseResultDto<CityDto>), 200)]
+        public async Task<IActionResult> Get(long id)
+        {
+            var role = await cityService.FindAsyncDto(id);
+            return Ok(role);
+        }
+        /// <summary>
+        ///  جستجو
+        /// </summary>
+        /// <returns></returns> 
+
+        [HttpGet]
+        [ProducesResponseType(typeof(BaseResultDto<CityVDto>), 200)]
+        public IActionResult Get([FromQuery] CityInputDto dto)
+        {
+            var searchDto = cityService.Search(dto);
+            return Ok(searchDto);
+        }
+        /// <summary>
+        /// آیتم جدید
+        /// </summary>  
+        [HttpPost]
+        [AllowAnonymous]
+        [ProducesResponseType(typeof(BaseResultDto<CityDto>), 200)]
+        public async Task<IActionResult> Post(CityDto cityDto)
+        {
+
+            var dto = await cityService.InsertAsyncDto(cityDto);
+            return Ok(dto);
+        }
+        /// <summary>
+        /// ویرایش آیتم
+        /// </summary>
+
+        [HttpPut]
+        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        public IActionResult Put(CityDto cityDto)
+        {
+            var dto = cityService.UpdateDto(cityDto);
+            return Ok(dto);
+        }
+        /// <summary>
+        /// حذف آیتم
+        /// </summary>
+        ///
+        [HttpDelete]
+        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        public IActionResult Delete(long id)
+        {
+            var dto = cityService.DeleteDto(id);
+            return Ok(dto);
+        }
+    }
+}

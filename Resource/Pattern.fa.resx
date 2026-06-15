@@ -1,0 +1,192 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AmountsLessT1CannotPaid" xml:space="preserve">
+    <value>مبلغ کمتر از {0} تومان قابل پرداخت نیست</value>
+  </data>
+  <data name="CourseT1IsPrerequisiteForThisCourse" xml:space="preserve">
+    <value>دوره ({0}) پیش نیاز این دوره میباشد</value>
+  </data>
+  <data name="DeliveryDays" xml:space="preserve">
+    <value>ارسال تا {0} روز آینده</value>
+  </data>
+  <data name="NumberEnteredMustLeastNumber" xml:space="preserve">
+    <value>{0} باید حداقل {1} عدد باشد</value>
+  </data>
+  <data name="PaymentDescription" xml:space="preserve">
+    <value>پرداخت فاکتور شماره {0}</value>
+  </data>
+  <data name="PleaseInsertT1" xml:space="preserve">
+    <value>لطفا {0} را وارد نمایید</value>
+  </data>
+  <data name="PleaseSelectT1" xml:space="preserve">
+    <value>لطفا {0} را انتخاب نمایید</value>
+  </data>
+  <data name="ProductOrderTrakingCode" xml:space="preserve">
+    <value>{0} با شماره پیگیری {1}</value>
+  </data>
+  <data name="PushCancelReserveCompanion" xml:space="preserve">
+    <value>مشتری {0} رزرو {1} خود را لغو کرد</value>
+  </data>
+  <data name="PushCancelReserveUser" xml:space="preserve">
+    <value>{0} عزیز، رزرو شما برای {1} لغو شد</value>
+  </data>
+  <data name="PushCompleteReserveUser" xml:space="preserve">
+    <value>{0} عزیز، رزرو شما با موفقیت تکمیل شد</value>
+  </data>
+  <data name="PushProccessOrderUser" xml:space="preserve">
+    <value>{0} عزیز، سفارش شما با شماره {1} در حال پردازش است</value>
+  </data>
+  <data name="PushRegisterOrderUser" xml:space="preserve">
+    <value>{0} عزیز، سفارش شما با شماره {1} ثبت شد</value>
+  </data>
+  <data name="PushRegisterPansionCompanion" xml:space="preserve">
+    <value>شما یک رزرو جدید از طرف {0} دارید</value>
+  </data>
+  <data name="PushRegisterPansionUser" xml:space="preserve">
+    <value>{0} عزیز، پانسیون {1} برای شما رزرو شد</value>
+  </data>
+  <data name="PushRegisterReserveCompanion" xml:space="preserve">
+    <value>شما یک رزرو از طرف {0} برای {1} دارید</value>
+  </data>
+  <data name="PushRegisterReserveUser" xml:space="preserve">
+    <value>{0} عزیز، {1} برای پت شما رزرو شد</value>
+  </data>
+  <data name="PushSentOrderUser" xml:space="preserve">
+    <value>{0} عزیز، سفارش شما با شماره {1} ارسال شد</value>
+  </data>
+  <data name="PushSignInUser" xml:space="preserve">
+    <value>خوش برگشتی {0} عزیز</value>
+  </data>
+  <data name="PushSignUpUser" xml:space="preserve">
+    <value>به پاستیل خوش اومدی {0} عزیز</value>
+  </data>
+  <data name="Push_Title" xml:space="preserve">
+    <value>پاستیل</value>
+  </data>
+  <data name="RebateMinCartPrice" xml:space="preserve">
+    <value>حداقل مبلغ سفارش باید {0} باشد</value>
+  </data>
+  <data name="WrongVrifyCodeCount" xml:space="preserve">
+    <value>به دلیل ورود بیش از سه بار کد اشتباه امکان ارسال مجدد تا  {0} دقیقه بعد فراهم نیست</value>
+  </data>
+  <data name="YouCanBuyUpToT1Product" xml:space="preserve">
+    <value>شما می توانید حداکثر {0} عدد از این محصول را خریداری کنید</value>
+  </data>
+</root>

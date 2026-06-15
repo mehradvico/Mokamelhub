@@ -1,0 +1,17 @@
+﻿using Application.Common.Dto.Field;
+
+namespace Application.Services.Content.BannerSrv.Dto
+{
+    public class BannerDto : FullName_FieldDto
+    {
+
+        public string Url { get; set; }
+        public int Priority { get; set; }
+        public long? PictureId { get; set; }
+        public long? Picture2Id { get; set; }
+        public int ClickCount { get; set; }
+        public bool Active { get; set; }
+        public long? CategoryId { get; set; }
+    }
+}
+

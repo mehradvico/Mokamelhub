@@ -1,0 +1,510 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AccessDenied" xml:space="preserve">
+    <value>AccessDenied</value>
+  </data>
+  <data name="AlreadyIsCompanion" xml:space="preserve">
+    <value>Already Is Companion</value>
+  </data>
+  <data name="AlreadyIsDriver" xml:space="preserve">
+    <value>Already is driver</value>
+  </data>
+  <data name="AmountNotCorrect" xml:space="preserve">
+    <value>Amount is not correct</value>
+  </data>
+  <data name="BonusAmountAddedToWalletSuccessfully" xml:space="preserve">
+    <value>Bonus amount added to wallet successfully</value>
+  </data>
+  <data name="BonusCodeCanNotBeYours" xml:space="preserve">
+    <value>Bonus code can not be yours</value>
+  </data>
+  <data name="BonusHasAlreadyBeenAddedToTheWalletForThisProductOrder" xml:space="preserve">
+    <value>Bonus has already been added to the wallet for this ProductOrder</value>
+  </data>
+  <data name="CartIsEmpty" xml:space="preserve">
+    <value>Cart is Empty</value>
+  </data>
+  <data name="DuplicateValue" xml:space="preserve">
+    <value>Duplicate value</value>
+  </data>
+  <data name="ErrorOnStartPayment" xml:space="preserve">
+    <value>Error on start payment</value>
+  </data>
+  <data name="FileNotAllow" xml:space="preserve">
+    <value>File Not Allow</value>
+  </data>
+  <data name="GoldAccountNowIsAvailable" xml:space="preserve">
+    <value>Gold Account Now Is Available</value>
+  </data>
+  <data name="InsufficientFunds" xml:space="preserve">
+    <value>Insufficient funds</value>
+  </data>
+  <data name="InsufficientInventory" xml:space="preserve">
+    <value>Insufficient inventory</value>
+  </data>
+  <data name="InvalidBonusCode" xml:space="preserve">
+    <value>Invalid bonus code</value>
+  </data>
+  <data name="InvalidCode" xml:space="preserve">
+    <value>Invalid code</value>
+  </data>
+  <data name="InvalidData" xml:space="preserve">
+    <value>Invalid data</value>
+  </data>
+  <data name="InvalidTimeFormat" xml:space="preserve">
+    <value>Invalid time format</value>
+  </data>
+  <data name="InvalidToken" xml:space="preserve">
+    <value>The token is invalid</value>
+  </data>
+  <data name="ItIsNotPossibleToBuy" xml:space="preserve">
+    <value>It is not possible to buy</value>
+  </data>
+  <data name="MobileChangedSuccessfully" xml:space="preserve">
+    <value>Mobile number changed successfully</value>
+  </data>
+  <data name="NothingFound" xml:space="preserve">
+    <value>Nothing found</value>
+  </data>
+  <data name="NotPossibleUseRebateCode" xml:space="preserve">
+    <value>It is not possible to use this rebate code</value>
+  </data>
+  <data name="OperationFailed" xml:space="preserve">
+    <value>Operation failed</value>
+  </data>
+  <data name="PleaseAnswerTheQuestions" xml:space="preserve">
+    <value>Please answer the questions</value>
+  </data>
+  <data name="PleaseEnterEitherMobileOrEmail" xml:space="preserve">
+    <value>Please enter either mobile or email</value>
+  </data>
+  <data name="PleaseEnterFile" xml:space="preserve">
+    <value>Please Enter File</value>
+  </data>
+  <data name="PleaseEnterTheAddress" xml:space="preserve">
+    <value>Please Enter The Address</value>
+  </data>
+  <data name="PleaseEnterTheAmount" xml:space="preserve">
+    <value>Please enter the amount</value>
+  </data>
+  <data name="PleaseEnterTheCode" xml:space="preserve">
+    <value>Please enter the code</value>
+  </data>
+  <data name="PleaseEnterTheLicensePlateNumber" xml:space="preserve">
+    <value>Please Enter The License Plate Number</value>
+  </data>
+  <data name="PleaseEnterTheName" xml:space="preserve">
+    <value>PleaseEnterTheName</value>
+  </data>
+  <data name="PleaseEnterThePassword" xml:space="preserve">
+    <value>Please enter the password</value>
+  </data>
+  <data name="PleaseEnterThePhone" xml:space="preserve">
+    <value>Please enter the phone</value>
+  </data>
+  <data name="PleaseEnterTheToken" xml:space="preserve">
+    <value>Please enter the token</value>
+  </data>
+  <data name="PleaseEnterTheVehicle" xml:space="preserve">
+    <value>Please Enter The Vehicle</value>
+  </data>
+  <data name="PleaseSelectTheAddress" xml:space="preserve">
+    <value>Please select the address</value>
+  </data>
+  <data name="PleaseSelectTheDeliveryType" xml:space="preserve">
+    <value>Please select the delivery type</value>
+  </data>
+  <data name="PleaseSelectTheMerchant" xml:space="preserve">
+    <value>Please select the merchant</value>
+  </data>
+  <data name="PleaseSetDestination" xml:space="preserve">
+    <value>Please set destination</value>
+  </data>
+  <data name="PleaseSetOrigin" xml:space="preserve">
+    <value>Please set origin</value>
+  </data>
+  <data name="PleaseSpecifyFirstVariationValue" xml:space="preserve">
+    <value>Please specify the first variation value.</value>
+  </data>
+  <data name="ResourceNotFind" xml:space="preserve">
+    <value>Resource not find</value>
+  </data>
+  <data name="SelectAtLeastOneType" xml:space="preserve">
+    <value>Select at least one type</value>
+  </data>
+  <data name="SettingsAreNotComplete" xml:space="preserve">
+    <value>Settings are not complete</value>
+  </data>
+  <data name="Success" xml:space="preserve">
+    <value>Successfully</value>
+  </data>
+  <data name="SuccessfullyAddedToCart" xml:space="preserve">
+    <value>Successfully added to cart</value>
+  </data>
+  <data name="SuccessfullyCompletedPreviousVariationsWereRemoved" xml:space="preserve">
+    <value>Successfully completed and previous variations were removed.</value>
+  </data>
+  <data name="TheBonusCodeIsWrong" xml:space="preserve">
+    <value>The bonus code is wrong</value>
+  </data>
+  <data name="TheCodeIsDuplicate" xml:space="preserve">
+    <value>The code is duplicate</value>
+  </data>
+  <data name="TheCodeIsWrong" xml:space="preserve">
+    <value>The code is wrong</value>
+  </data>
+  <data name="TheDateNotCorrect" xml:space="preserve">
+    <value>The date is not correct</value>
+  </data>
+  <data name="TheEmailAddressIsDuplicate" xml:space="preserve">
+    <value>The email address is duplicate</value>
+  </data>
+  <data name="TheEmailAddressIsWrong" xml:space="preserve">
+    <value>The email address is wrong</value>
+  </data>
+  <data name="TheEmailChangeRequestSent" xml:space="preserve">
+    <value>The Email of Email address change request has been sent</value>
+  </data>
+  <data name="TheEnteredNumberNotCorrect" xml:space="preserve">
+    <value>The entered number is not correct</value>
+  </data>
+  <data name="TheLabelIsDuplicate" xml:space="preserve">
+    <value>The label is duplicate</value>
+  </data>
+  <data name="TheLimitUsesDiscountCodeReached" xml:space="preserve">
+    <value>The limit of the number of uses of this discount code has been reached</value>
+  </data>
+  <data name="TheMobileChangeRequestSent" xml:space="preserve">
+    <value>The Sms of the Mobile change request has been sent</value>
+  </data>
+  <data name="TheMobileNumberIsDuplicate" xml:space="preserve">
+    <value>The mobile number is duplicate</value>
+  </data>
+  <data name="TheMobileNumberIsWrong" xml:space="preserve">
+    <value>The mobile number is wrong</value>
+  </data>
+  <data name="TheNameIsDuplicate" xml:space="preserve">
+    <value>TheNameIsDuplicate</value>
+  </data>
+  <data name="TheNumberIsMoreThanStock" xml:space="preserve">
+    <value>The number is more than stock</value>
+  </data>
+  <data name="TheNumberOfWrongsIsGreaterThanThelimit" xml:space="preserve">
+    <value>The number of wrongs is greater than the limit</value>
+  </data>
+  <data name="ThePasswordIsWrong" xml:space="preserve">
+    <value>The password is wrong</value>
+  </data>
+  <data name="ThePercentageRangeNotCorrect" xml:space="preserve">
+    <value>The percentage range is not correct</value>
+  </data>
+  <data name="TheProductUnavailable" xml:space="preserve">
+    <value>The product is unavailable</value>
+  </data>
+  <data name="TheRangeEnteredIsNotCorrect" xml:space="preserve">
+    <value>The range entered is not correct</value>
+  </data>
+  <data name="TheRecoveryCodeWasEmailed" xml:space="preserve">
+    <value>The recovery code was emailed</value>
+  </data>
+  <data name="TheRecoveryCodeWasSentBySMS" xml:space="preserve">
+    <value>The recovery code was sent by SMS</value>
+  </data>
+  <data name="TheTimeRangeMustBeBetween0And23" xml:space="preserve">
+    <value>The time range must be between 0 and 23.</value>
+  </data>
+  <data name="TheTimeUseCodeNotArrived" xml:space="preserve">
+    <value>The time to use this code has not arrived</value>
+  </data>
+  <data name="TheUserAccountIsBlocked" xml:space="preserve">
+    <value>The user account is blocked</value>
+  </data>
+  <data name="ThisArticleHasAlreadyBeenEdited" xml:space="preserve">
+    <value>This article has already been edited</value>
+  </data>
+  <data name="ThisDiscountCodeExpired" xml:space="preserve">
+    <value>This discount code has expired</value>
+  </data>
+  <data name="TimesHaveOverlap" xml:space="preserve">
+    <value>Times have overlap</value>
+  </data>
+  <data name="TokenExpired" xml:space="preserve">
+    <value>Token expired</value>
+  </data>
+  <data name="ToTimeMustBeBiggerThanFromTime" xml:space="preserve">
+    <value>To time must be bigger than from time</value>
+  </data>
+  <data name="Unsuccess" xml:space="preserve">
+    <value>Unsuccessfully</value>
+  </data>
+  <data name="UserNotFound" xml:space="preserve">
+    <value>User not found</value>
+  </data>
+  <data name="UserNotFount" xml:space="preserve">
+    <value>User not found</value>
+  </data>
+  <data name="UserWithTheProvidedBonusCodeNotFound" xml:space="preserve">
+    <value>User with the provided BonusCode not found</value>
+  </data>
+  <data name="VarietiesShouldBeDifferent" xml:space="preserve">
+    <value>Varieties should be different</value>
+  </data>
+  <data name="PleaseEnterCancelDetail" xml:space="preserve">
+    <value>Why You Are Cancelling</value>
+  </data>
+  <data name="YouHaveAlreadyPurchasedThisCourse" xml:space="preserve">
+    <value>You Have Already Purchased This Course</value>
+  </data>
+  <data name="YouHaveAlreadyPurchasedThisProduct" xml:space="preserve">
+    <value>You have already purchased this product</value>
+  </data>
+  <data name="YouHaveNotPermission" xml:space="preserve">
+    <value>You have not permission</value>
+  </data>
+  <data name="YouHaveNotPermissionToAddInformationForThisCompanion" xml:space="preserve">
+    <value>You do not have permission to add information for this Companion.</value>
+  </data>
+  <data name="YourReportHasBeenSubmitedForThisProductBefore" xml:space="preserve">
+    <value>Your Report Has Been Submited For This Product Before</value>
+  </data>
+  <data name="YourReportHasBeenSubmitedForThisCompanionBefore" xml:space="preserve">
+    <value>Your Report Has Been Submited For This Companion Before</value>
+  </data>
+  <data name="YourReportHasBeenSubmitedForThisCompanionAssistanceBefore" xml:space="preserve">
+    <value>Your Report Has Been Submited For This Companion Assistance Before</value>
+  </data>
+  <data name="PleaseEnterTheActivationValueReason" xml:space="preserve">
+    <value>Please Enter The Activation Value Reason</value>
+  </data>
+  <data name="PleaseChangeTheStatus" xml:space="preserve">
+    <value>Please Change The Status</value>
+  </data>
+  <data name="PleaseEnterTheAdminDetail" xml:space="preserve">
+    <value>Please Enter The Admin Detail</value>
+  </data>
+  <data name="ThisInsuranceIsNotForThisPet" xml:space="preserve">
+    <value>This Insurance Is Not For This Pet</value>
+  </data>
+  <data name="YouAlreadyHaveOnlineTrip" xml:space="preserve">
+    <value>You Already Have Online Trip</value>
+  </data>
+  <data name="StartDateMustBeFromTommarow" xml:space="preserve">
+    <value>Start Date Must Be From Tommarow</value>
+  </data>
+  <data name="YouCanNotCancelThisReservation" xml:space="preserve">
+    <value>You Can Not Cancel This Reservation</value>
+  </data>
+  <data name="PleaseEnterTheDriver" xml:space="preserve">
+    <value>Please Enter The Driver</value>
+  </data>
+  <data name="PleaseEnterTimeRange" xml:space="preserve">
+    <value>Please Enter Time Range</value>
+  </data>
+  <data name="ThisReserveIsNotBlongToYou" xml:space="preserve">
+    <value>This Reserve Is Not Blong To You</value>
+  </data>
+  <data name="ThisTripHasBeenReservedForAnotherDriver" xml:space="preserve">
+    <value>This Trip Has Been Reserved For Another Driver</value>
+  </data>
+  <data name="PleaseSetUserPet" xml:space="preserve">
+    <value>Please Set User Pet</value>
+  </data>
+  <data name="AlreadyChoose" xml:space="preserve">
+    <value>Already Choose</value>
+  </data>
+  <data name="FinalPriceIsNotAvailable" xml:space="preserve">
+    <value>Final Price Is Not Available</value>
+  </data>
+  <data name="YourCargoRequestIsNotAccepted" xml:space="preserve">
+    <value>Your Cargo Request Is Not Accepted</value>
+  </data>
+  <data name="TriphasNotCompletedYet" xml:space="preserve">
+    <value>Trip has Not Completed Yet</value>
+  </data>
+  <data name="ReservehasNotCompletedYet" xml:space="preserve">
+    <value>Reserve has Not Completed Yet</value>
+  </data>
+  <data name="ThisReserveStateHasCompletedBefore" xml:space="preserve">
+    <value>This Reserve State Has Completed Before</value>
+  </data>
+  <data name="TheFinalPriceHasNotYetBeenRecordedForThisReserve" xml:space="preserve">
+    <value>The final amount has not yet been recorded for this reservation.</value>
+  </data>
+  <data name="TheCalculationOfSharesHasAlreadyBeenDone" xml:space="preserve">
+    <value>The calculation of shares has already been done.</value>
+  </data>
+  <data name="LicensePlateNumber" xml:space="preserve">
+    <value>License Plate Number</value>
+  </data>
+  <data name="ThisReserveIsCompleted" xml:space="preserve">
+    <value>ThisReserveIsCompleted</value>
+  </data>
+  <data name="ThisReserveIsPaid" xml:space="preserve">
+    <value>ThisReserveIsPaid</value>
+  </data>
+  <data name="CodeValue" xml:space="preserve">
+    <value>Code Value</value>
+  </data>
+  <data name="PleaseEnterFromDate" xml:space="preserve">
+    <value>Please Enter From Date</value>
+  </data>
+  <data name="ThisCompanionHasNoActivityInYourZone" xml:space="preserve">
+    <value>This Companion Has No Activity In Your Zone</value>
+  </data>
+  <data name="PleaseUploadAMedia" xml:space="preserve">
+    <value>Please Upload A Media</value>
+  </data>
+  <data name="PleaseEnterDayCount" xml:space="preserve">
+    <value>Please Enter Day Count</value>
+  </data>
+  <data name="InvalidUser" xml:space="preserve">
+    <value>Invalid User</value>
+  </data>
+  <data name="HaveBeenReserved" xml:space="preserve">
+    <value>Have Been Reserved</value>
+  </data>
+  <data name="InvalidDeviceKey" xml:space="preserve">
+    <value>Invalid Device Key</value>
+  </data>
+  <data name="PleaseEnterCardHolderName" xml:space="preserve">
+    <value>Please Enter Card Holder Name</value>
+  </data>
+  <data name="PleaseEnterCardNumber" xml:space="preserve">
+    <value>Please Enter Card Number</value>
+  </data>
+  <data name="CartNumberMustBe16Digit" xml:space="preserve">
+    <value>Cart Number Must Be 16 Digit</value>
+  </data>
+  <data name="BankCartIsNotAvailable" xml:space="preserve">
+    <value>Bank Cart Is Not Available</value>
+  </data>
+  <data name="ShebaNumberMustBe24Digit" xml:space="preserve">
+    <value>Sheba Number Must Be 24 Digit</value>
+  </data>
+  <data name="EditIsNotAvailable" xml:space="preserve">
+    <value>Edit Is Not Available</value>
+  </data>
+  <data name="EmptyResponseFromParsian" xml:space="preserve">
+    <value>Empty response from Parsian</value>
+  </data>
+  <data name="InvalidTokenFromParsian" xml:space="preserve">
+    <value>Invalid token from Parsian</value>
+  </data>
+</root>

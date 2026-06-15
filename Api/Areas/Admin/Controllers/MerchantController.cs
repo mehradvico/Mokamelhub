@@ -1,0 +1,89 @@
+﻿using Application.Common.Dto.Input;
+using Application.Common.Dto.Result;
+using Application.Services.Order.MerchantSrv.Dto;
+using Application.Services.Order.MerchantSrv.Iface;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Api.Areas.Admin.Controllers
+{
+    /// <summary>
+    /// مدیریت گالری آیتم ها
+    /// </summary>
+    ///
+    [Area("Admin")]
+    [Route("api/[area]/[controller]")]
+    [ApiController]
+    [Authorize]
+    public class MerchantController : ControllerBase
+    {
+        private IMerchantService MerchantService;
+        /// <summary>
+        /// مدیریت درگاه بانکی
+        /// </summary>
+        ///
+        public MerchantController(IMerchantService MerchantService)
+        {
+            this.MerchantService = MerchantService;
+        }
+        /// <summary>
+        ///  اطلاعات آیتم 
+        /// </summary>
+        /// <param name="id">شناسه دسته بندی</param>
+        /// <returns>
+        /// </returns>
+        [HttpGet("{id}")]
+        [ProducesResponseType(typeof(BaseResultDto<MerchantDto>), 200)]
+        public async Task<IActionResult> Get(long id)
+        {
+            var role = await MerchantService.FindAsyncDto(id);
+            return Ok(role);
+        }
+        /// <summary>
+        ///  جستجو
+        /// </summary>
+        /// <returns></returns> 
+
+        [HttpGet]
+        [ProducesResponseType(typeof(BaseInputDto), 200)]
+        public IActionResult Get([FromQuery] BaseInputDto dto)
+        {
+            var searchDto = MerchantService.Search(dto);
+            return Ok(searchDto);
+        }
+        /// <summary>
+        /// آیتم جدید
+        /// </summary>  
+        [HttpPost]
+        [AllowAnonymous]
+        [ProducesResponseType(typeof(BaseResultDto<MerchantDto>), 200)]
+        public async Task<IActionResult> Post(MerchantDto MerchantDto)
+        {
+
+            var dto = await MerchantService.InsertAsyncDto(MerchantDto);
+            return Ok(dto);
+        }
+        /// <summary>
+        /// ویرایش آیتم
+        /// </summary>
+
+        [HttpPut]
+        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        public IActionResult Put(MerchantDto MerchantDto)
+        {
+            var dto = MerchantService.UpdateDto(MerchantDto);
+            return Ok(dto);
+        }
+        /// <summary>
+        /// حذف آیتم
+        /// </summary>
+        ///
+        [HttpDelete]
+        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        public IActionResult Delete(long id)
+        {
+            var dto = MerchantService.DeleteDto(id);
+            return Ok(dto);
+        }
+    }
+}

@@ -1,0 +1,39 @@
+﻿namespace Application.Common.Enumerable
+{
+    public enum CacheTypeEnum
+    {
+        DefaultAll,
+        DisableAll,
+        BaseDetail,
+        DetailOne,
+        DetailSearch,
+        ProductOne,
+        ProductSearch,
+        ProductFile,
+        ProductPicture,
+        ProductRelated,
+        ProductFeature,
+        ProductSiteMap,
+        ProductPost,
+        PostOne,
+        PostSearch,
+        PostSiteMap,
+        PetSearch,
+        BannerSearch,
+        BrandOne,
+        BrandSearch,
+        BrandCategory,
+        CategoryOne,
+        CategorySearch,
+        CategoryMenu,
+        CategorySiteMap,
+        CategoryStore,
+        Feature,
+        PermissionMenu,
+        GalleryOne,
+        GallerySearch,
+        StaticPage,
+        StoryGroupSearch
+
+    }
+}

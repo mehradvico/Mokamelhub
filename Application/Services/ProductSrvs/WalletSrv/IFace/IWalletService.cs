@@ -1,0 +1,19 @@
+﻿using Application.Common.Dto.Result;
+using Application.Services.ProductSrvs.WalletSrv.Dto;
+using Entities.Entities;
+using System.Threading.Tasks;
+
+namespace Application.Services.ProductSrvs.WalletSrv.IFace
+{
+    public interface IWalletService
+    {
+        Task<double> GetAmountValueAsync(long userId);
+        Task<BaseResultDto<double>> GetAmountAsync(long userId);
+        Task<BaseResultDto<WalletVDto>> FindAsyncVDto(long id);
+        WalletSearchDto Search(WalletInputDto baseSearchDto);
+        Task<BaseResultDto<WalletDto>> InsertAsyncDto(WalletDto dto);
+        Task<BaseResultDto<WalletDto>> InsertUpdateProductOrderAsync(WalletDto dto, bool complete);
+        Task<BaseResultDto> WalletPaymentCallback(Payment payment);
+        Task<BaseResultDto> DeleteAsync(long id);
+    }
+}
