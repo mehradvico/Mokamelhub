@@ -74,7 +74,6 @@ builder.Services.AddAuthentication(Options =>
                  },
                  OnTokenValidated = context =>
                  {
-                     //log
                      var tokenValidatorService = context.HttpContext.RequestServices.GetRequiredService<IOnTokenValidatedService>();
                      return tokenValidatorService.Execute(context);
 
@@ -104,24 +103,31 @@ builder.Services.Configure<FormOptions>(x =>
 });
 
 var app = builder.Build();
-
-
-if (app.Environment.IsDevelopment())
+app.Use(async (context, next) =>
 {
-
-}
+    var host = context.Request.Host.Host;
+    var path = context.Request.Path;
+    if (host.Equals("file.mokamelhub.com", StringComparison.OrdinalIgnoreCase) &&
+        path.StartsWithSegments("/swagger"))
+    {
+        context.Response.StatusCode = StatusCodes.Status404NotFound;
+        return;
+    }
+    await next();
+});
 app.UseStaticFiles();
 app.UseCors("AllowAnyOrigin");
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapControllers();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
+        c.DefaultModelsExpandDepth(-1);
     });
 }
+app.MapControllers();
 app.Run();

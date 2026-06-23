@@ -138,22 +138,48 @@ builder.Services.AddHangfireServer();
 var app = builder.Build();
 
 app.UseRequestLocalization();
+app.Use(async (context, next) =>
+{
+    var host = context.Request.Host.Host;
+    var path = context.Request.Path;
+
+    if (
+        host.Equals("api.mokamelhub.com", StringComparison.OrdinalIgnoreCase) &&
+        path.StartsWithSegments("/swagger")
+    )
+    {
+        context.Response.StatusCode = StatusCodes.Status404NotFound;
+        return;
+    }
+
+    await next();
+});
+
 app.UseHangfireDashboard();
 
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
+
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v2/swagger.json", "v2");
         c.DefaultModelsExpandDepth(-1);
     });
 }
+
 app.UseStaticFiles();
-app.UseCors("AllowAnyOrigin");
+
 app.UseHttpsRedirection();
+
+app.UseCors("AllowAnyOrigin");
+
 app.UseAuthentication();
+
 app.UseAuthorization();
-app.MapControllers();
+
 app.UseOutputCache();
+
+app.MapControllers();
+
 app.Run();
