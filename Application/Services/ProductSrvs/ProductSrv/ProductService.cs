@@ -448,12 +448,29 @@ namespace Application.Services.ProductSrvs.ProductSrv
             catch { }
 
         }
-        public BaseResultDto GetSiteMap()
+        public BaseResultDto<List<ProductSiteMapDto>> GetSiteMap()
         {
-            string sqlQuery = $"SELECT p.Id, p.Name,p.UpdateDate, c.Label As CategoryName FROM Products p LEFT JOIN Categories c ON p.CategoryId = c.Id WHERE p.Active = 1 and p.Deleted=0";
-            var connection = new SqlConnection(connectionString);
-            var posts = connection.Query<ProductSiteMapDto>(sqlQuery).ToList();
-            return new BaseResultDto<List<ProductSiteMapDto>>(true, posts);
+            string sqlQuery = @"
+        SELECT 
+            p.Id,
+            p.Name,
+            p.ProductLabel AS Label,
+            p.UpdateDate,
+            c.Label AS CategoryName
+        FROM Products p
+        LEFT JOIN Categories c ON p.CategoryId = c.Id
+        WHERE 
+            p.Active = 1 
+            AND p.Deleted = 0
+            AND p.StatusId = 14
+            AND p.ProductLabel IS NOT NULL 
+            AND p.ProductLabel <> ''
+    ";
+
+            using var connection = new SqlConnection(connectionString);
+            var products = connection.Query<ProductSiteMapDto>(sqlQuery).ToList();
+
+            return new BaseResultDto<List<ProductSiteMapDto>>(true, products);
         }
         public async Task UpdateProductPriceAsync(ProductUpdateTypeEnum productUpdateType, string Id)
         {

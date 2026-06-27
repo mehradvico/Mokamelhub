@@ -19,8 +19,8 @@ namespace Application.Services.ProductSrvs.ProductSrv.Iface
         Task<BaseResultDto> UpdateDtoAsync(ProductDto dto, long? storeId = null);
         BaseResultDto DeleteDto(long id);
         Task<Product> GetByIdAsync(long id);
-        Task IncreaseSellCountAsync(ProductOrder order);
-        BaseResultDto GetSiteMap();
+        Task IncreaseSellCountAsync(ProductOrder order);    
+        public BaseResultDto<List<ProductSiteMapDto>> GetSiteMap();
         Task UpdateProductPriceAsync(ProductUpdateTypeEnum productUpdateType, string Id);
         Task<BaseResultDto<ProductDto>> DuplicateAsyncDto(ProductDuplicateDto productDuplicateDto);
         Task<BaseResultDto> ChangeProductVarietiesAsync(ProductDto product);

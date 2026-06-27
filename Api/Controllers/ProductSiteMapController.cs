@@ -1,5 +1,6 @@
 ﻿using Application.Common.Dto.Result;
 using Application.Common.Enumerable;
+using Application.Common.Helpers;
 using Application.Services.ProductSrv.Dto;
 using Application.Services.ProductSrvs.ProductSrv.Iface;
 using Microsoft.AspNetCore.Authorization;
@@ -15,7 +16,9 @@ namespace Api.Controllers
     [AllowAnonymous]
     public class ProductSiteMapController : ControllerBase
     {
-        private IProductService productService;
+        private readonly IProductService productService;
+        private const string SiteUrl = "https://mokamelhub.com";
+
         /// <summary>
         /// مرتبط با سایت مپ محصولات
         /// </summary>
@@ -23,19 +26,42 @@ namespace Api.Controllers
         {
             this.productService = productService;
         }
+
         /// <summary>
-        /// سایت مپ محصولات
+        /// سایت مپ محصولات - JSON
         /// </summary>
-        /// <returns></returns>
-        /// 
-        [HttpGet()]
+        [HttpGet]
         [CustomOutputCache(CacheTypeEnum.ProductSiteMap)]
-        [ProducesResponseType(typeof(BaseResultDto<ProductSiteMapDto>), 200)]
+        [ProducesResponseType(typeof(BaseResultDto<List<ProductSiteMapDto>>), 200)]
         public IActionResult Get()
         {
             var list = productService.GetSiteMap();
             return Ok(list);
         }
 
+        /// <summary>
+        /// سایت مپ محصولات - XML
+        /// </summary>
+        [HttpGet("xml")]
+        [CustomOutputCache(CacheTypeEnum.ProductSiteMap)]
+        public IActionResult GetXml()
+        {
+            var result = productService.GetSiteMap() as BaseResultDto<List<ProductSiteMapDto>>;
+
+            var products = result?.Data ?? new List<ProductSiteMapDto>();
+
+            var urls = products
+                .Where(x => !string.IsNullOrWhiteSpace(x.Label))
+                .Select(x =>
+                    SitemapXmlHelper.CreateUrl(
+                        $"{SiteUrl}/product/{Uri.EscapeDataString(x.Label)}",
+                        x.UpdateDate
+                    )
+                );
+
+            var xml = SitemapXmlHelper.BuildUrlSet(urls);
+
+            return SitemapXmlHelper.Xml(xml);
+        }
     }
 }

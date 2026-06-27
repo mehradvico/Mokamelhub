@@ -16,12 +16,16 @@ namespace Payment.Controllers
             _paymentService = paymentService;
             _adminSettingHelper = adminSettingHelper;
         }
-        [Route("callback/{id}")]
-        public async Task<IActionResult> Index(long id, bool test = false)
+        [HttpGet("/callback/{id:long}")]
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+        public async Task<IActionResult> Index(long id)
         {
-            var payment = await _paymentService.CallbackPayment(id, test);
+            var payment = await _paymentService.CallbackPayment(id);
 
-            TempData["ReturnToSiteUrl"] = AppSettingsHelper.BaseUrl;
+            TempData["ReturnToSiteUrl"] = string.IsNullOrWhiteSpace(AppSettingsHelper.BaseUrl)
+                ? "https://mokamelhub.com"
+                : AppSettingsHelper.BaseUrl.TrimEnd('/');
+
             return View(payment);
         }
     }

@@ -13,7 +13,7 @@ namespace Application.Services.Order.PaymentSrv.Iface
         BaseSearchDto<PaymentVDto> Search(PaymentInputDto baseSearchDto);
         Task<BaseResultDto> StartPayment(PaymentStartDto dto);
         Task<BaseResultDto> InsertWalletPaymentAsyncDto(PaymentStartDto dto);
-        Task<BaseResultDto<PaymentDto>> CallbackPayment(long paymentId, bool test);
+        Task<BaseResultDto<PaymentDto>> CallbackPayment(long paymentId);
     }
 }
 

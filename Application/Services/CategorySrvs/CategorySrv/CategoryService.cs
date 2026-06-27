@@ -267,19 +267,51 @@ namespace Application.Services.CategorySrv
             var categoryIds = connection.Query<long>(sqlQuery).ToList();
             return categoryIds;
         }
-        public BaseResultDto GetSiteMap(string label)
+        public BaseResultDto<List<CategorySiteMapDto>> GetSiteMap()
         {
-            var list = GetCat(label);
-            return new BaseResultDto<List<CategorySiteMapDto>>(true, list);
-        }
-        private List<CategorySiteMapDto> GetCat(string categoryLabel)
-        {
-            var categoryids = string.Join(',', GetAllChildrenIds(categoryLabel));
-            //var categories = _context.Categories.Where(s => categoryids.Contains(s.Id)).Select(s=>new CategorySiteMapDto() { Id=s.Id,Label=s.Label,Name=s.Name,UpdateDate=s.UpdateDate}).ToList();
-            string sqlQuery = $"SELECT TOP (1000) [Id],[Label],[Name],[UpdateDate] FROM [Categories] where Id in ({categoryids})";
-            var connection = new SqlConnection(connectionString);
+            string sqlQuery = @"
+        WITH CategoryTree AS
+        (
+            SELECT 
+                Id,
+                ParentId,
+                Label,
+                Name,
+                UpdateDate
+            FROM Categories
+            WHERE 
+                Active = 1 
+                AND Deleted = 0
+                AND Id IN (3)
+
+            UNION ALL
+
+            SELECT 
+                c.Id,
+                c.ParentId,
+                c.Label,
+                c.Name,
+                c.UpdateDate
+            FROM Categories c
+            INNER JOIN CategoryTree ct ON c.ParentId = ct.Id
+            WHERE 
+                c.Active = 1 
+                AND c.Deleted = 0
+        )
+        SELECT 
+            Id,
+            Label,
+            Name,
+            UpdateDate
+        FROM CategoryTree
+        WHERE Label IS NOT NULL AND Label <> ''
+        OPTION (MAXRECURSION 0)
+    ";
+
+            using var connection = new SqlConnection(connectionString);
             var categories = connection.Query<CategorySiteMapDto>(sqlQuery).ToList();
-            return categories;
+
+            return new BaseResultDto<List<CategorySiteMapDto>>(true, categories);
         }
 
         public async Task<BaseResultDto<CategoryChildrenMinVDto>> GetTreeAsync(long parentId, string lang = null)

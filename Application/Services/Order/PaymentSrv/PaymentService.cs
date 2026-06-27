@@ -1,6 +1,7 @@
 ﻿using Application.Common.Dto.Result;
 using Application.Common.Enumerable;
 using Application.Common.Enumerable.Code;
+using Application.Common.Helpers.Iface;
 using Application.Common.Service;
 using Application.Services.Order.MerchantSrv.Iface;
 using Application.Services.Order.PaymentSrv.Dto;
@@ -27,15 +28,22 @@ namespace Application.Services.Order.PaymentSrv
         private readonly IProductOrderService _productOrderService;
         private readonly IWalletService _walletService;
         private readonly ICodeService _codeService;
+        private const string PaymentCallbackBaseUrl = "https://payment.mokamelhub.com/callback";
 
-        public PaymentService(IDataBaseContext _context, IMapper mapper, ICodeService codeService, IWalletService walletService, IMerchantService merchantService, IProductOrderService productOrderService) : base(_context, mapper)
+        public PaymentService(
+            IDataBaseContext _context,
+            IMapper mapper,
+            ICodeService codeService,
+            IWalletService walletService,
+            IMerchantService merchantService,
+            IProductOrderService productOrderService) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
             _merchantService = merchantService;
             _productOrderService = productOrderService;
             _walletService = walletService;
-            _codeService = codeService;       
+            _codeService = codeService;
         }
 
         public async Task<BaseResultDto> InsertWalletPaymentAsyncDto(PaymentStartDto dto)
@@ -64,17 +72,20 @@ namespace Application.Services.Order.PaymentSrv
                 if (dto.Amount < 10000)
                 {
                     return new BaseResultDto(false, string.Format(Resource.Pattern.AmountsLessT1CannotPaid, 10000));
-
                 }
+
                 var item = mapper.Map<Payment>(dto);
-                DateTime justNow = DateTime.Now;
-                item.CreateDate = justNow;
+                item.CreateDate = DateTime.Now;
                 item.IsOnline = true;
+
                 await _context.Payments.AddAsync(item);
                 await _context.SaveChangesAsync();
+
                 dto.PaymentId = item.Id;
-                dto.CallbackUrl =$"https://payment.pastil.pet/callback/{item.Id}";
+                dto.CallbackUrl = $"{PaymentCallbackBaseUrl}/{item.Id}";
+
                 var initPayment = await _merchantService.StartAsync(dto);
+
                 if (!initPayment.IsSuccess)
                 {
                     item.IsSuccess = false;
@@ -82,6 +93,7 @@ namespace Application.Services.Order.PaymentSrv
                     _context.Payments.Update(item);
                     await _context.SaveChangesAsync(true);
                 }
+
                 return initPayment;
             }
             catch (Exception ex)
@@ -89,58 +101,69 @@ namespace Application.Services.Order.PaymentSrv
                 return new BaseResultDto(isSuccess: false, val: ex.Message);
             }
         }
-        public async Task<BaseResultDto<PaymentDto>> CallbackPayment(long paymentId, bool test = false)
+        public async Task<BaseResultDto<PaymentDto>> CallbackPayment(long paymentId)
         {
             try
             {
                 var payment = await FindAsync(paymentId);
+
                 if (payment == null)
                 {
-                    return new BaseResultDto<PaymentDto>(isSuccess: false, val: Resource.Notification.Unsuccess, null);
+                    return new BaseResultDto<PaymentDto>(
+                        isSuccess: false,
+                        val: Resource.Notification.Unsuccess,
+                        null);
                 }
+
                 if (payment.IsSuccess != null)
                 {
-                    return new BaseResultDto<PaymentDto>(isSuccess: false, val: Resource.Notification.Unsuccess, null);
+                    return new BaseResultDto<PaymentDto>(
+                        isSuccess: payment.IsSuccess == true,
+                        data: mapper.Map<PaymentDto>(payment));
+                }
+
+                var callback = await _merchantService.CallbackAsync(payment);
+
+                if (callback.IsSuccess)
+                {
+                    if (payment.Type.Label == PaymentTypeEnum.PaymentType_ProductOrder.ToString())
+                    {
+                        if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.ProductOrder.ToString())
+                        {
+                            var productPaymentCallback = await _productOrderService.ProductPaymentCallback(payment.ProductOrderId, fromWallet: true);
+
+                            if (!productPaymentCallback.IsSuccess)
+                            {
+                                return new BaseResultDto<PaymentDto>(
+                                    isSuccess: false,
+                                    val: Resource.Notification.Unsuccess,
+                                    null);
+                            }
+                        }
+                    }
+                    else if (payment.Type.Label == PaymentTypeEnum.PaymentType_Wallet.ToString())
+                    {
+                        await _walletService.WalletPaymentCallback(payment);
+                    }
                 }
                 else
                 {
-                    var callback = await _merchantService.CallbackAsync(payment, test);
-                    if (callback.IsSuccess)
+                    if (payment.Type.Label == PaymentTypeEnum.PaymentType_ProductOrder.ToString())
                     {
-                        if (payment.Type.Label == PaymentTypeEnum.PaymentType_ProductOrder.ToString())
-                        {
-                            if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.ProductOrder.ToString())
-                            {
-                                var productPaymentCallback = await _productOrderService.ProductPaymentCallback(payment.ProductOrderId, fromWallet: true);
-                                if (!productPaymentCallback.IsSuccess)
-                                {
-                                    return new BaseResultDto<PaymentDto>(isSuccess: false, val: Resource.Notification.Unsuccess, null);
-
-                                }
-                            }
-                        }
-                        else if (payment.Type.Label == PaymentTypeEnum.PaymentType_Wallet.ToString())
-                        {
-                            await _walletService.WalletPaymentCallback(payment);
-                        }
-
+                        await _productOrderService.UpdateWalletAsync(payment.ProductOrderId, false);
                     }
-                    else
-                    {
-                        if (payment.Type.Label == PaymentTypeEnum.PaymentType_ProductOrder.ToString())
-                        {
-                            await _productOrderService.UpdateWalletAsync(payment.ProductOrderId, false);
-
-                        }
-
-                    }
-                    return new BaseResultDto<PaymentDto>(isSuccess: callback.IsSuccess, data: mapper.Map<PaymentDto>(payment));
-
                 }
+
+                return new BaseResultDto<PaymentDto>(
+                    isSuccess: callback.IsSuccess,
+                    data: mapper.Map<PaymentDto>(payment));
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<PaymentDto>(isSuccess: false, val: ex.Message, null);
+                return new BaseResultDto<PaymentDto>(
+                    isSuccess: false,
+                    val: ex.Message,
+                    null);
             }
         }
         public BaseSearchDto<PaymentVDto> Search(PaymentInputDto baseSearchDto)

@@ -20,7 +20,7 @@ namespace Application.Services.CategorySrv.Iface
         Category Find(long id, bool? active = null);
         List<long> GetAllParentIds(long id);
         List<long> GetAllParentIds(string label);
-        BaseResultDto GetSiteMap(string label);
+        BaseResultDto<List<CategorySiteMapDto>> GetSiteMap();
         List<long> GetAllChildrenIds(string label);
         List<long> GetAllChildrenIds(long id);
         Task<BaseResultDto<CategoryChildrenMinVDto>> GetTreeAsync(long parentId, string lang = null);

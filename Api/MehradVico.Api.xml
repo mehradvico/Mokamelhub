@@ -3649,12 +3649,15 @@
             مرتبط با سایت مپ دسته بندی ها
             </summary>
         </member>
-        <member name="M:Api.Controllers.CategorySiteMapController.Get(System.String)">
+        <member name="M:Api.Controllers.CategorySiteMapController.Get">
             <summary>
-            سایت مپ دسته بندی ها
+            سایت مپ دسته بندی ها - JSON
             </summary>
-            <returns></returns>
-            
+        </member>
+        <member name="M:Api.Controllers.CategorySiteMapController.GetXml">
+            <summary>
+            سایت مپ دسته بندی ها - XML
+            </summary>
         </member>
         <member name="T:Api.Controllers.CategoryStoreController">
             <summary>
@@ -4055,10 +4058,13 @@
         </member>
         <member name="M:Api.Controllers.ProductSiteMapController.Get">
             <summary>
-            سایت مپ محصولات
+            سایت مپ محصولات - JSON
             </summary>
-            <returns></returns>
-            
+        </member>
+        <member name="M:Api.Controllers.ProductSiteMapController.GetXml">
+            <summary>
+            سایت مپ محصولات - XML
+            </summary>
         </member>
         <member name="T:Api.Controllers.SearchController">
             <summary>
