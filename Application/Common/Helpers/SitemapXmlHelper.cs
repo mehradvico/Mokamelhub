@@ -2,10 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Common.Helpers
 {
@@ -31,9 +30,13 @@ namespace Application.Common.Helpers
 
         public static string CreateUrl(string loc, DateTime updateDate)
         {
-            var lastmod = updateDate.Year >= 2000
-                ? $"    <lastmod>{updateDate:yyyy-MM-dd}</lastmod>{Environment.NewLine}"
-                : "";
+            var lastmod = "";
+
+            if (updateDate.Year >= 2000)
+            {
+                var validDate = updateDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+                lastmod = $"    <lastmod>{validDate}</lastmod>{Environment.NewLine}";
+            }
 
             return $@"  <url>
     <loc>{WebUtility.HtmlEncode(loc)}</loc>

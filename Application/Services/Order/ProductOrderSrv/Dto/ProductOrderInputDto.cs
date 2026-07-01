@@ -20,5 +20,6 @@ namespace Application.Services.Order.ProductOrderOrderSrv.Dto
         public bool? HasParentOrderId { get; set; }
         public bool? HasChildOrderId { get; set; }
         public bool? HasReserveDate { get; set; }
+        public bool? IsPaid { get; set; }
     }
 }

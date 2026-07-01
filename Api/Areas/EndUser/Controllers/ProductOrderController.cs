@@ -54,6 +54,7 @@ namespace Api.Areas.EndUser.Controllers
         public IActionResult Get([FromQuery] ProductOrderInputDto dto)
         {
             dto.UserId = _currentUserHelper.CurrentUser.UserId;
+            dto.IsPaid = true;
             var productOrders = productOrderService.Search(dto);
             return Ok(productOrders);
         }

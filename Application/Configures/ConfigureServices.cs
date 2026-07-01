@@ -6,7 +6,6 @@ using Application.Common.Geography.Services;
 using Application.Common.Helpers;
 using Application.Common.Helpers.Iface;
 using Application.Common.Interface;
-using Application.Common.SpotPlayer;
 using Application.Maping;
 using Application.Services.Accounting.OtpVerifySrv;
 using Application.Services.Accounting.OtpVerifySrv.Iface;
@@ -294,7 +293,6 @@ public static class ConfigureServices
         services.AddScoped<IProductLikeService, ProductLikeService>();
         services.AddScoped<ITicketService, TicketService>();
         services.AddScoped<ITicketItemService, TicketItemService>();
-        services.AddScoped<ISpotPlayer, SpotPlayerHelper>();
         services.AddScoped<INewsletterService, NewsletterService>();
         services.AddScoped<IContactUsGroupService, ContactUsGroupService>();
         services.AddScoped<IPostProductService, PostProductService>();

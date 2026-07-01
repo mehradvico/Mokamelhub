@@ -54,7 +54,7 @@ namespace Api.Controllers
                 .Where(x => !string.IsNullOrWhiteSpace(x.Label))
                 .Select(x =>
                     SitemapXmlHelper.CreateUrl(
-                        $"{SiteUrl}/product/{Uri.EscapeDataString(x.Label)}",
+                        $"{SiteUrl}/products/{Uri.EscapeDataString(x.Label)}",
                         x.UpdateDate
                     )
                 );

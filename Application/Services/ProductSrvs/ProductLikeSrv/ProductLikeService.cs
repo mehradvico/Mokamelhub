@@ -36,8 +36,6 @@ namespace Application.Services.ProductSrvs.ProductLikeSrv
             {
                 var user = await userService.FindAsyncDto(dto.UserId);
                 var product = await productService.FindAsyncDto(dto.ProductId);
-                await messageService.SendMessageAsync(messageType: Common.Enumerable.Message.MessageTypeEnum.UserLikeProduct, mobileReceptor: user.Data.Mobile, emailReceptor: user.Data.Email, token1: user.Data.FirstName, token2: product.Data.Name);
-
                 return await base.InsertAsyncDto(dto);
             }
             return new BaseResultDto<ProductLikeDto>(isSuccess: true, data: null);

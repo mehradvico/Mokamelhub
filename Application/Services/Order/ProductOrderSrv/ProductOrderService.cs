@@ -103,6 +103,10 @@ namespace Application.Services.Order.ProductOrderSrv
             {
                 query = query.Where(s => s.UserId.Equals(baseSearchDto.UserId));
             }
+            if (baseSearchDto.IsPaid.HasValue)
+            {
+                query = query.Where(s => s.IsPaid == baseSearchDto.IsPaid.Value);
+            }
             if (baseSearchDto.StoreId.HasValue)
             {
                 query = query.Where(s => s.ProductOrderStores.Any(m => m.StoreId == baseSearchDto.StoreId.Value));
@@ -216,23 +220,10 @@ namespace Application.Services.Order.ProductOrderSrv
 
             string bonusCode = productOrder.BonusCode;
 
-            if (!string.IsNullOrEmpty(bonusCode))
-            {
-                await AddBonusAmountToWalletAsync(productOrder);
-            }
             var orderUrl = productOrder.Id;
 
             await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.UserRegisterOrder, mobileReceptor: productOrder.User.Mobile, emailReceptor: productOrder.User.Email, token1: nameText, token2: productOrder.Id, token3: orderUrl);
             await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.AdminRegisterOrder, mobileReceptor: _adminSettingHelperService.BaseAdminSetting.AdminMobiles, emailReceptor: productOrder.User.Email, token1: nameText, token2: productOrder.Id);
-
-            foreach (var productOrderStore in productOrder.ProductOrderStores)
-            {
-                var store = productOrderStore.Store;
-                if (store != null)
-                {
-                    await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.StoreRegisterOrder, mobileReceptor: store.Mobile, emailReceptor: store.Email, token1: nameText, token2: productOrder.Id);
-                }
-            }
             return new BaseResultDto(true);
         }
 
@@ -272,14 +263,70 @@ namespace Application.Services.Order.ProductOrderSrv
         public async Task<BaseResultDto> ChangeStatusAsync(ProductOrderDto dto)
         {
             var item = await _context.ProductOrders.AsTracking().Include(s => s.User).FirstOrDefaultAsync(s => s.Id == dto.Id);
+
+            if (item == null)
+            {
+                return new BaseResultDto(false, val: Resource.Notification.ResourceNotFind);
+            }
+
+            var currentStatusId = item.ProductOrderStatusId;
+            var newStatusId = dto.ProductOrderStatusId;
+
+            var deliveredStatusId = (long)ProductOrderStatusEnum.ProductOrderStatus_Delivered;
+            var processStatusId = (long)ProductOrderStatusEnum.ProductOrderStatus_Proccess;
+            var sendStatusId = (long)ProductOrderStatusEnum.ProductOrderStatus_Send;
+
+            if (currentStatusId == deliveredStatusId)
+            {
+                return new BaseResultDto(false);
+            }
+
+            var currentRank = GetProductOrderStatusRank(currentStatusId);
+            var newRank = GetProductOrderStatusRank(newStatusId);
+
+            if (currentRank == 0 || newRank == 0)
+            {
+                return new BaseResultDto(false);
+            }
+
+            if (newRank <= currentRank)
+            {
+                return new BaseResultDto(false);
+            }
+
+            var shouldSendStatusMessage = newStatusId == processStatusId || newStatusId == sendStatusId;
+
+            string statusName = null;
+
+            if (shouldSendStatusMessage)
+            {
+                statusName = await _context.Codes.Where(s => s.Id == newStatusId).Select(s => s.Name).FirstOrDefaultAsync();
+            }
+
             item.ProductOrderStatus = null;
-            item.ProductOrderStatusId = dto.ProductOrderStatusId;
-            var statusProccess = await _codeService.GetIdByLabelAsync(ProductOrderStatusEnum.ProductOrderStatus_Proccess.ToString());
-            var statusSend = await _codeService.GetIdByLabelAsync(ProductOrderStatusEnum.ProductOrderStatus_Send.ToString());
-            _context.ProductOrders.Update(item);
-            _context.SaveChanges();
-            await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.ProductOrderChangeStatus, mobileReceptor: item.User.Mobile, emailReceptor: item.User.Email, token1: item.User.FirstName, token2: item.Id);
+            item.ProductOrderStatusId = newStatusId;
+
+            await _context.SaveChangesAsync();
+
+            if (shouldSendStatusMessage && item.User != null)
+            {
+                await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.ProductOrderChangeStatus, mobileReceptor: item.User.Mobile, emailReceptor: item.User.Email, token1: item.User.FirstName, token2: statusName
+                );
+            }
+
             return new BaseResultDto(true);
+        }
+
+        private static int GetProductOrderStatusRank(long statusId)
+        {
+            return statusId switch
+            {
+                (long)ProductOrderStatusEnum.ProductOrderStatus_Insert => 1,
+                (long)ProductOrderStatusEnum.ProductOrderStatus_Proccess => 2,
+                (long)ProductOrderStatusEnum.ProductOrderStatus_Send => 3,
+                (long)ProductOrderStatusEnum.ProductOrderStatus_Delivered => 4,
+                _ => 0
+            };
         }
         public async Task<BaseResultDto> ChangeStateAsync(ProductOrderDto dto)
         {
@@ -303,8 +350,7 @@ namespace Application.Services.Order.ProductOrderSrv
                 {
                     {
                         string nameText = string.Format("{0}_{1}", productOrder.User.FirstName, productOrder.User.LastName).Replace(" ", "_");
-                        string trackingText = string.Format(Resource.Pattern.ProductOrderTrakingCode, productOrder.DeliveryType.Name, productOrder.TrackingCode);
-                        await _messageSenderService.SendMessageAsync(messageType: Common.Enumerable.Message.MessageTypeEnum.TrackingCode, mobileReceptor: productOrder.User.Mobile, emailReceptor: productOrder.User.Email, token1: nameText, token2: productOrder.Id, token5: trackingText, sendDate: DateTime.Now);
+                        await _messageSenderService.SendMessageAsync(messageType: Common.Enumerable.Message.MessageTypeEnum.TrackingCode, mobileReceptor: productOrder.User.Mobile, emailReceptor: productOrder.User.Email, token1: nameText, token2: productOrder.Id, token3: productOrder.TrackingCode.ToString(), sendDate: DateTime.Now);
                     }
                 }
             }
@@ -328,86 +374,5 @@ namespace Application.Services.Order.ProductOrderSrv
             await _walletService.InsertUpdateProductOrderAsync(new WalletDto { ProductOrderId = productOrderId }, complete: complete);
         }
 
-        public async Task<BaseResultDto> AddBonusAmountToWalletAsync(ProductOrder productOrder)
-        {
-            var user = await _userService.GetUserByBonusCodeAsync(productOrder.BonusCode);
-            if (user == null)
-            {
-                return new BaseResultDto(false, Resource.Notification.UserWithTheProvidedBonusCodeNotFound);
-            }
-
-            var existingWallet = await _context.Wallets.FirstOrDefaultAsync(w => w.ProductOrderId == productOrder.Id && w.UserId == productOrder.UserId && !w.Deleted);
-            if (existingWallet != null)
-            {
-                return new BaseResultDto(false, Resource.Notification.BonusHasAlreadyBeenAddedToTheWalletForThisProductOrder);
-            }
-
-            var bonusAmount = productOrder.Price * _adminSettingHelperService.BaseAdminSetting.BonusPercent;
-            int bonus = (int)bonusAmount;
-
-            var userWallet = await _context.Wallets.FirstOrDefaultAsync(s => s.UserId == user.Id);
-            var wallet = new WalletDto
-            {
-                Amount = userWallet.Amount + bonus,
-                IsIncrease = true,
-                UserId = user.Id,
-                Painding = false,
-                ProductOrderId = productOrder.Id
-            };
-
-            await _walletService.InsertAsyncDto(wallet);
-
-            return new BaseResultDto(true, Resource.Notification.BonusAmountAddedToWalletSuccessfully);
-        }
-        public BaseResultDto<List<ProductOrderVDto>> GetReserved(long userId, long addressId)
-        {
-            var items = _context.ProductOrders.Where(s => s.UserId == userId && s.AddressId == addressId && string.IsNullOrEmpty(s.ChildOrderId) && s.ReserveDate.HasValue && s.ReserveDate.Value > DateTime.Now && s.ProductOrderState.Label == ProductOrderStateEnum.ProductOrderState_Normal.ToString() && s.ProductOrderStatus.Label == ProductOrderStatusEnum.ProductOrderStatus_Insert.ToString() && s.IsPaid);
-            return new BaseResultDto<List<ProductOrderVDto>>(items.Any(), mapper.Map<List<ProductOrderVDto>>(items));
-        }
-
-        public async Task<BaseResultDto> SetCancelRequestAsync(ProductOrderDto productOrder)
-        {
-            var item = await _context.ProductOrders.FirstOrDefaultAsync(s => s.Id == productOrder.Id && s.UserId == productOrder.UserId);
-            if (item != null)
-            {
-                if (item.IsPaid && item.CancelRequestDate == null)
-                {
-                    item.CancelRequestDate = DateTime.Now;
-                    item.UserDescription = productOrder.UserDescription;
-                    _context.ProductOrders.Update(item);
-                    _context.SaveChanges();
-                    await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.ProductOrderCancelRequest, mobileReceptor: _adminSettingHelperService.BaseAdminSetting.AdminMobiles, emailReceptor: item.User.Email, token1: productOrder.Id);
-
-                    return new BaseResultDto(true);
-                }
-
-            }
-            return new BaseResultDto(false, val: Resource.Notification.InvalidData);
-
-        }
-        public async Task<BaseResultDto> AnswerCancelRequestAsync(ProductOrderDto productOrder)
-        {
-            var item = await _context.ProductOrders.Include(s => s.User).FirstOrDefaultAsync(s => s.Id == productOrder.Id);
-            if (item != null)
-            {
-                item.ProductOrderStateId = productOrder.ProductOrderStateId;
-                item.AdminDescription = productOrder.AdminDescription;
-                _context.ProductOrders.Update(item);
-                _context.SaveChanges();
-                await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.ProductOrderCancelAnswer, mobileReceptor: item.User.Mobile, emailReceptor: item.User.Email, token1: productOrder.Id);
-                return new BaseResultDto(true);
-            }
-            return new BaseResultDto(false, val: Resource.Notification.InvalidData);
-
-        }
-
-        public async Task<BaseResultDto> UpdatePermittedAsyncDto(string id)
-        {
-            var item = await _context.ProductOrders.AsTracking().FirstOrDefaultAsync(s => s.Id == id);
-            item.Permitted = true;
-            _context.ProductOrders.Update(item);
-            await _context.SaveChangesAsync();
-            return new BaseResultDto(isSuccess: true, val: Resource.Notification.Success);
-        }
     }
 }

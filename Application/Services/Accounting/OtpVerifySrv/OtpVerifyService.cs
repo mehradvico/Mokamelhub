@@ -66,14 +66,14 @@ namespace Application.Services.Accounting.OtpVerifySrv
 
                     if (item != null)
                     {
-                        if (item.TryCount > 3 && item.UpdateDate.AddMinutes(10) > DateTime.Now)
+                        if (item.TryCount > 5 && item.UpdateDate.AddMinutes(5) > DateTime.Now)
                         {
-                            var timeSpan = (item.UpdateDate.AddMinutes(10) - DateTime.Now).Minutes;
+                            var timeSpan = (item.UpdateDate.AddMinutes(5) - DateTime.Now).Minutes;
                             if (timeSpan < 1) { timeSpan = 1; }
                             errors.Add(new Tuple<string, string>(string.Format(Resource.Pattern.WrongVrifyCodeCount, timeSpan), nameof(dto.Code)));
                             return new BaseResultDto<OtpVerifyVDto>(isSuccess: false, messages: errors, dto);
                         }
-                        else if (item.UpdateDate.AddMinutes(10) < DateTime.Now)
+                        else if (item.UpdateDate.AddMinutes(5) < DateTime.Now)
                         {
                             item.TryCount = 0;
                         }

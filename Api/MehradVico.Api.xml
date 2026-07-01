@@ -1944,23 +1944,6 @@
             <param name="dto"></param>
             <returns></returns>
         </member>
-        <member name="T:Api.Areas.Admin.Controllers.ProductOrderCancelRequestController">
-             <summary>
-             تغییر وضعیت سفارش ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.ProductOrderCancelRequestController.#ctor(Application.Services.Order.ProductOrderSrv.Iface.IProductOrderService)">
-             <summary>
-             تغییر وضعیت سفارش ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.ProductOrderCancelRequestController.Put(Application.Services.Order.ProductOrderSrv.Dto.ProductOrderDto)">
-            <summary>
-            تغییر وضعیت سفارش ها
-            </summary>
-        </member>
         <member name="T:Api.Areas.Admin.Controllers.ProductOrderChangeDescriptionsController">
              <summary>
              تغییر وضعیت سفارش ها
@@ -3158,25 +3141,6 @@
             <summary>
             حذف آیتم 
             </summary>  
-        </member>
-        <member name="T:Api.Areas.EndUser.Controllers.ProductOrderCancelRequestController">
-             <summary>
-             مدیریت سفارش ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.EndUser.Controllers.ProductOrderCancelRequestController.#ctor(Application.Services.Order.ProductOrderSrv.Iface.IProductOrderService,Application.Common.Interface.ICurrentUserHelper)">
-             <summary>
-             مدیریت سفارش ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.EndUser.Controllers.ProductOrderCancelRequestController.Post(Application.Services.Order.ProductOrderSrv.Dto.ProductOrderDto)">
-            <summary>
-             اطلاعات آیتم 
-            </summary>
-            <returns>
-            </returns>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.ProductOrderController">
              <summary>

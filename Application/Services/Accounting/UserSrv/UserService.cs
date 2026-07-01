@@ -294,7 +294,7 @@ namespace Application.Services.UserSrv
 
             return new UserSearchDto(searchDto, query, mapper);
         }
-        public async Task<BaseResultDto> CheckUser(string token, long userId, string area, string controller, string action/*, long storeId*/)
+        public async Task<BaseResultDto> CheckUser(string token, long userId, string area, string controller, string action)
         {
 
             var hashed = token.Tosha256Hash();
@@ -314,8 +314,6 @@ namespace Application.Services.UserSrv
             }
             else if ((!string.IsNullOrEmpty(area)) && (area.ToLower().Equals("admin")) && !userToken.User.Role.Permissions.Any(s => s.Area.ToLower().Equals(area.ToLower()) && s.Controller.ToLower().Equals(controller.ToLower()) && s.Action.ToLower().Equals(action.ToLower())))
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.YouHaveNotPermission);
-            //else if ((!string.IsNullOrEmpty(area)) && (area.ToLower().Equals("seller")) && !userToken.User.Stores.Any(s => s.Id == storeId))
-            //    return new BaseResultDto(isSuccess: false, val: Resource.Notification.YouHaveNotPermission);
             else
             {
                 return new BaseResultDto(isSuccess: true);

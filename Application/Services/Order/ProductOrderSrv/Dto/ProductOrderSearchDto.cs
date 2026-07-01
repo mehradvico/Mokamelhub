@@ -25,6 +25,7 @@ namespace Application.Services.Order.ProductOrderOrderSrv.Dto
             this.HasChildOrderId = dto.HasChildOrderId;
             this.HasReserveDate = dto.HasReserveDate;
             this.HasReserveDate = dto.HasReserveDate;
+            this.IsPaid = dto.IsPaid;
         }
         public DateTime? DateFrom { get; set; }
         public DateTime? DateTo { get; set; }
@@ -37,6 +38,7 @@ namespace Application.Services.Order.ProductOrderOrderSrv.Dto
         public bool? HasParentOrderId { get; set; }
         public bool? HasChildOrderId { get; set; }
         public bool? HasReserveDate { get; set; }
+        public bool? IsPaid { get; set; }
 
 
     }

@@ -18,12 +18,6 @@ namespace Application.Services.Order.ProductOrderSrv.Iface
         Task<BaseResultDto> ChangeTrackingCode(ProductOrderDto order);
         Task<BaseResultDto> ChangeDescriptions(ProductOrderDto order);
         Task UpdateWalletAsync(string productOrderId, bool complete);
-        BaseResultDto<List<ProductOrderVDto>> GetReserved(long userId, long addressId);
-        Task<BaseResultDto> SetCancelRequestAsync(ProductOrderDto productOrder);
-        Task<BaseResultDto> AnswerCancelRequestAsync(ProductOrderDto productOrder);
-        Task<BaseResultDto> UpdatePermittedAsyncDto(string id);
-
-
     }
 }
 
