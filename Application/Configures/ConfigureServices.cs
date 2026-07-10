@@ -161,6 +161,7 @@ using Application.Services.ProductSrvs.ProductSrv.Iface;
 using Application.Services.ProductSrvs.StoreCommentSrv;
 using Application.Services.ProductSrvs.StoreCommentSrv.Iface;
 using Application.Services.ProductSrvs.StoreSrv;
+using Application.Services.ProductSrvs.TorobSrv.Iface;
 using Application.Services.ProductSrvs.VarietyItemSrv;
 using Application.Services.ProductSrvs.VarietyItemSrv.Iface;
 using Application.Services.ProductSrvs.VarietySrv;
@@ -186,6 +187,7 @@ using Application.Services.StoreSrv.StoreUserSrv;
 using Application.Services.StoreSrvs.StoreUserSrv.Iface;
 using Application.Services.TicketItemSrv;
 using Application.Services.TicketSrv;
+using Application.Services.TorobSrv;
 using Application.Services.UserSrv;
 using AutoMapper;
 using Microsoft.AspNetCore.Builder;
@@ -326,6 +328,7 @@ public static class ConfigureServices
         services.AddScoped<IDayToDateService, DayToDateService>();
         services.AddScoped<IPaymentGateway, ZarinPalGateway>();
         services.AddScoped<IPaymentGatewayResolver, PaymentGatewayResolver>();
+        services.AddScoped<ITorobService, TorobService>();
 
         services.AddCors(option => option.AddPolicy("AllowAnyOrigin", b => b.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
 

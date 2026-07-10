@@ -389,7 +389,7 @@ namespace Application.Services.ProductSrvs.ProductSrv
                 if (visit)
                 {
                     item.VisitCount++;
-                    _context.Products.Update(item);
+                    _context.Products.Update(item); 
                     await _context.SaveChangesAsync();
                 }
                 return new BaseResultDto<ProductVDto>(true, mapper.Map<ProductVDto>(item));

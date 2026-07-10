@@ -129,79 +129,99 @@ namespace Application.Services.UserSrv
             {
                 var modelCheker = ModelHelper<UserDto>.ModelErrors(dto);
                 if (!modelCheker.IsSuccess)
-                {
                     return modelCheker;
-                }
-                else
+
+                var item = _context.Users.AsTracking()
+                    .FirstOrDefault(s => s.Id == dto.Id && !s.Deleted);
+
+                if (item == null)
+                    return new BaseResultDto(isSuccess: false, val: Resource.Notification.NothingFound);
+
+                var errors = new List<Tuple<string, string>>();
+
+                dto.Mobile = (dto.Mobile ?? string.Empty).ToEnglishDigitsAsync().Result?.Trim();
+
+                dto.Email = string.IsNullOrWhiteSpace(dto.Email)
+                    ? null
+                    : dto.Email.ToEnglishDigitsAsync().Result?.Trim();
+
+                if (!RegixHelper.IsMobileAsync(dto.Mobile).Result)
                 {
-                    var item = _context.Users.FirstOrDefault(s => s.Id == dto.Id);
-                    var errors = new List<Tuple<string, string>>();
-                    dto.Mobile = dto.Mobile.ToEnglishDigitsAsync().Result;
+                    errors.Add(new Tuple<string, string>(
+                        Resource.Notification.TheMobileNumberIsWrong,
+                        nameof(dto.Mobile)
+                    ));
+                }
 
-                    if (!RegixHelper.IsMobileAsync(dto.Mobile).Result)
-                    {
-                        errors.Add(new Tuple<string, string>(Resource.Notification.TheMobileNumberIsWrong, nameof(dto.Mobile)));
-                    }
+                if (!string.IsNullOrWhiteSpace(dto.Email) && !RegixHelper.IsEmailAsync(dto.Email).Result)
+                {
+                    errors.Add(new Tuple<string, string>(
+                        Resource.Notification.TheEmailAddressIsWrong,
+                        nameof(dto.Email)
+                    ));
+                }
 
-                    if (!RegixHelper.IsEmailAsync(dto.Email).Result)
-                    {
-                        errors.Add(new Tuple<string, string>(Resource.Notification.TheEmailAddressIsWrong, nameof(dto.Email)));
-                    }
+                if (dto.Mobile != item.Mobile && !MobileIsUnique(dto.Mobile))
+                {
+                    errors.Add(new Tuple<string, string>(
+                        Resource.Notification.TheMobileNumberIsDuplicate,
+                        nameof(dto.Mobile)
+                    ));
+                }
 
-                    if (errors.Any())
-                    {
-                        return new BaseResultDto<UserDto>(isSuccess: false, messages: errors, dto);
-                    }
+                if (!string.IsNullOrWhiteSpace(dto.Email) && dto.Email != item.Email && !EmailIsUnique(dto.Email))
+                {
+                    errors.Add(new Tuple<string, string>(
+                        Resource.Notification.TheEmailAddressIsDuplicate,
+                        nameof(dto.Email)
+                    ));
+                }
 
-                    if (dto.Mobile != item.Mobile && (!MobileIsUnique(dto.Mobile)))
-                    {
-                        errors.Add(new Tuple<string, string>(Resource.Notification.TheMobileNumberIsDuplicate, nameof(dto.Mobile)));
-                    }
+                if (item.CreateDate == default || item.CreateDate.Year < 1900)
+                    item.CreateDate = DateTime.Now;
 
-                    if (dto.Email != item.Email && (!EmailIsUnique(dto.Email)))
-                    {
-                        errors.Add(new Tuple<string, string>(Resource.Notification.TheEmailAddressIsDuplicate, nameof(dto.Email)));
-                    }
+                string newPasswordHash = null;
 
-                    if (errors.Any())
-                    {
-                        return new BaseResultDto(isSuccess: false, messages: errors);
-                    }
+                if (!string.IsNullOrWhiteSpace(dto.Password))
+                {
+                    dto.Password = dto.Password.ToEnglishDigitsAsync().Result;
 
-                    if (!string.IsNullOrEmpty(dto.Password))
+                    if (!RegixHelper.IsPassword(dto.Password).Result)
                     {
-                        dto.Password = dto.Password.ToEnglishDigitsAsync().Result;
-                        if (!RegixHelper.IsPassword(dto.Password).Result)
-                        {
-                            errors.Add(new Tuple<string, string>(Resource.Notification.ThePasswordIsWrong, nameof(dto.Password)));
-                        }
-                        if (errors.Any())
-                        {
-                            return new BaseResultDto<UserDto>(isSuccess: false, messages: errors, dto);
-                        }
-                        dto.Password = dto.Password.Tosha256Hash();
+                        errors.Add(new Tuple<string, string>(
+                            Resource.Notification.ThePasswordIsWrong,
+                            nameof(dto.Password)
+                        ));
                     }
                     else
                     {
-                        dto.Password = item.Password;
+                        newPasswordHash = dto.Password.Tosha256Hash();
                     }
-
-                    mapper.Map(dto, item);
-                    item.BonusCode = item.BonusCode;
-                    item.CreateDate = item.CreateDate;
-                    item.BirthDate = dto.BirthDate;
-
-                    _context.Users.Update(item);
-                    _context.SaveChanges();
-                    return new BaseResultDto(isSuccess: true);
                 }
+
+                if (errors.Any())
+                    return new BaseResultDto<UserDto>(isSuccess: false, messages: errors, data: dto);
+
+                mapper.Map(dto, item);
+
+                if (!string.IsNullOrWhiteSpace(newPasswordHash))
+                    item.Password = newPasswordHash;
+
+                if (item.CreateDate == default || item.CreateDate.Year < 1900)
+                    item.CreateDate = DateTime.Now;
+
+                if (item.BirthDate.HasValue && item.BirthDate.Value.Year < 1900)
+                    item.BirthDate = null;
+
+                _context.SaveChanges();
+
+                return new BaseResultDto(isSuccess: true);
             }
             catch (Exception ex)
             {
                 return new BaseResultDto(isSuccess: false, val: ex.Message);
             }
         }
-
 
         public UserVDto GetVDto(long userId)
         {
@@ -253,6 +273,7 @@ namespace Application.Services.UserSrv
             {
                 query = query.Where(s => s.RoleId == searchDto.RoleId);
             }
+
             else if (searchDto.RoleEnum.HasValue)
             {
                 query = query.Where(s => s.Role.Label == searchDto.RoleEnum.ToString());
@@ -737,5 +758,6 @@ namespace Application.Services.UserSrv
                 return new BaseResultDto<UserDto>(true, mapper.Map<UserDto>(item));
             return new BaseResultDto<UserDto>(false, mapper.Map<UserDto>(item));
         }
+
     }
 }

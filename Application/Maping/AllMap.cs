@@ -390,18 +390,35 @@ namespace Application.Maping
             //User
             CreateMap<Role, RoleDto>().ReverseMap();
             CreateMap<User, UserDto>().ForMember(x => x.Password, opt => opt.Ignore());
-            CreateMap<UserDto, User>().ForMember(x => x.Password, opt => opt.Ignore()).ForMember(x => x.Picture, opt => opt.Ignore());
-            CreateMap<User, UserVDto>().ForMember(x => x.FullName, o => o.MapFrom(m => string.Format("{0} {1}", m.FirstName, m.LastName))).ForMember(x => x.RoleName, o => o.MapFrom(m => string.Format("{0}", m.Role.Name)));
-            CreateMap<User, UserMinVDto>().ForMember(x => x.FullName, o => o.MapFrom(m => string.Format("{0} {1}", m.FirstName, m.LastName)));
+            CreateMap<UserDto, User>()
+                .ForMember(x => x.Password, opt => opt.Ignore())
+                .ForMember(x => x.Picture, opt => opt.Ignore())
+                .ForMember(x => x.Role, opt => opt.Ignore())
+                .ForMember(x => x.CreateDate, opt => opt.Ignore())
+                .ForMember(x => x.BonusCode, opt => opt.Ignore())
+                .ForMember(x => x.RequestCode, opt => opt.Ignore())
+                .ForMember(x => x.RequestCodeTryCount, opt => opt.Ignore())
+                .ForMember(x => x.Deleted, opt => opt.Ignore())
+                .ForMember(x => x.UserTokens, opt => opt.Ignore())
+                .ForMember(x => x.Carts, opt => opt.Ignore())
+                .ForMember(x => x.CartItems, opt => opt.Ignore())
+                .ForMember(x => x.ProductOrders, opt => opt.Ignore())
+                .ForMember(x => x.Rebates, opt => opt.Ignore())
+                .ForMember(x => x.Products, opt => opt.Ignore())
+                .ForMember(x => x.UserProducts, opt => opt.Ignore())
+                .ForMember(x => x.ProductLikes, opt => opt.Ignore())
+                .ForMember(x => x.Stores, opt => opt.Ignore());
+            CreateMap<User, UserVDto>()
+                .ForMember(x => x.FullName, opt => opt.MapFrom(m => $"{m.FirstName ?? ""} {m.LastName ?? ""}".Trim()))
+                .ForMember(x => x.RoleName, opt => opt.MapFrom(m => m.Role != null ? m.Role.Name : null));
+            CreateMap<User, UserMinVDto>().ForMember(x => x.FullName, opt => opt.MapFrom(m => $"{m.FirstName ?? ""} {m.LastName ?? ""}".Trim()));
             CreateMap<User, CurrentUserDto>()
-                .ForMember(x => x.RoleEnum, o => o.MapFrom(m => m.Role != null ? m.Role.Label : null))
-                .ForMember(x => x.RoleName, o => o.MapFrom(m => m.Role != null ? m.Role.Name : null))
-                .ForMember(x => x.UserId, o => o.MapFrom(m => m.Id))
-                .ForMember(x => x.IsFemale, o => o.MapFrom(m => m.IsFemale))
-                .ForMember(x => x.FullName, o => o.MapFrom(m => $"{m.FirstName} {m.LastName}"))
-                .ForMember(x => x.PictureId, o => o.MapFrom(m => m.PictureId))
-                .ForMember(x => x.StoreId, o => o.MapFrom(m => m.Stores.Where(c => !c.Deleted).Select(c => (long?)c.Id).FirstOrDefault()));
-
+                .ForMember(x => x.RoleEnum, opt => opt.MapFrom(m => m.Role != null ? m.Role.Label : null))
+                .ForMember(x => x.RoleName, opt => opt.MapFrom(m => m.Role != null ? m.Role.Name : null))
+                .ForMember(x => x.UserId, opt => opt.MapFrom(m => m.Id))
+                .ForMember(x => x.IsFemale, opt => opt.MapFrom(m => m.IsFemale))
+                .ForMember(x => x.FullName, opt => opt.MapFrom(m => $"{m.FirstName ?? ""} {m.LastName ?? ""}".Trim()))
+                .ForMember(x => x.PictureId, opt => opt.MapFrom(m => m.PictureId));
             CreateMap<SignUpDto, UserDto>();
             CreateMap<CreateUserTokenDto, UserTokenDto>();
             CreateMap<CreateUserTokenDto, UserToken>();

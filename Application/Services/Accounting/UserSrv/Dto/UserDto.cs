@@ -45,8 +45,7 @@ namespace Application.Services.Dto
         public string ClickGuid { get; set; }
         public bool IsFemale { get; set; }
         public long? PictureId { get; set; }
-        public DateTime BirthDate { get; set; }
-
+        public DateTime? BirthDate { get; set; }
         public PictureVDto Picture { get; set; }
 
     }

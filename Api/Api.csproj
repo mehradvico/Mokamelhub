@@ -23,6 +23,10 @@
   </ItemGroup>
 
   <ItemGroup>
+	  <PackageReference
+		Include="BouncyCastle.Cryptography"
+		Version="2.6.2"
+		Aliases="TorobBC" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -65,5 +69,11 @@
     <Folder Include="Areas\EndUser\Models\" />
     <Folder Include="Areas\EndUser\Views\" />
   </ItemGroup>
-
+	
+	<ItemGroup>
+		<Content Include="Keys\torob-public-key.pem">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		</Content>
+	</ItemGroup>
 </Project>
