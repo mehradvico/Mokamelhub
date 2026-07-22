@@ -182,19 +182,14 @@
                         </div>
                     }
                 }
-                else if (p.Type?.Label == PaymentTypeEnum.PaymentType_Wallet.ToString()
-                && p.CallBackTypeLabel == PaymentCallbackTypeEnum.ProductOrder.ToString())
+                @if (!string.IsNullOrWhiteSpace(p.GatewayTransactionId))
                 {
-                    @if (!string.IsNullOrWhiteSpace(p.CallBackId))
-                    {
-                        <div class="info-item">
-                            <span class="info-label">شماره سفارش:</span>
-                            <span class="info-value">@p.CallBackId</span>
-                        </div>
-                    }
+                    <div class="info-item">
+                        <span class="info-label">شناسه تراکنش اسنپ‌پی:</span>
+                        <span class="info-value">@p.GatewayTransactionId</span>
+                    </div>
                 }
-
-                @if (!string.IsNullOrWhiteSpace(refNumber))
+                else if (!string.IsNullOrWhiteSpace(refNumber))
                 {
                     <div class="info-item">
                         <span class="info-label">شماره پیگیری:</span>

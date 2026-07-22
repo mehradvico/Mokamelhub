@@ -13,7 +13,6 @@ namespace Application.Services.Order.ProductOrderSrv.Dto
         public long? TripId { get; set; }
         public long? CargoId { get; set; }
         public long? CompanionInsurancePackageSaleId { get; set; }
-        public long? WalletId { get; set; }
         public string RefNumber { get; set; }
         public string BonusCode { get; set; }
         public double Amount { get; set; }
@@ -25,6 +24,9 @@ namespace Application.Services.Order.ProductOrderSrv.Dto
         public long? FileId { get; set; }
         public string CallBackTypeLabel { get; set; }
         public string CallBackId { get; set; }
+        public string GatewayTransactionId { get; set; }
+        public string GatewayStatus { get; set; }
+        public long? GatewayAmountRial { get; set; }
         public CodeVDto Type { get; set; }
         public MerchantVDto Merchant { get; set; }
     }

@@ -39,7 +39,15 @@ namespace Application.Services.MerchantSrv
                 query = query.Where(s => s.Bank.Name.Contains(baseSearchDto.Q));
 
             if (baseSearchDto.Available.HasValue)
+            {
                 query = query.Where(s => s.Active == baseSearchDto.Available);
+                if (baseSearchDto.Available.Value)
+                {
+                    var zarinpalId = (long)MerchantEnum.zarinpal;
+                    var snappPayId = (long)MerchantEnum.snapppay;
+                    query = query.Where(s => s.BankId == zarinpalId || s.BankId == snappPayId);
+                }
+            }
 
             return new BaseSearchDto<Merchant, MerchantVDto>(baseSearchDto, query, mapper);
         }
@@ -54,6 +62,10 @@ namespace Application.Services.MerchantSrv
             }
 
             var provider = (MerchantEnum)merchant.BankId;
+            if (provider != MerchantEnum.zarinpal && provider != MerchantEnum.snapppay)
+            {
+                return new BaseResultDto<PaymentStartDto>(false, "روش پرداخت انتخاب‌شده فعال نیست.", dto);
+            }
             var gateway = _gatewayResolver.Resolve(provider);
             var res = await gateway.StartAsync(dto, merchant);
 
@@ -64,6 +76,10 @@ namespace Application.Services.MerchantSrv
 
             dto.PaymentIsLink = res.PaymentIsLink;
             dto.PaymentUrl = res.PaymentIsLink ? res.PaymentUrl : res.HtmlForm;
+            dto.GatewayToken = res.Token;
+            dto.GatewayTransactionId = res.GatewayOrderId;
+            dto.GatewayStatus = res.GatewayStatus;
+            dto.GatewayAmountRial = res.GatewayAmountRial;
 
             return new BaseResultDto<PaymentStartDto>(true, dto);
         }
@@ -77,13 +93,23 @@ namespace Application.Services.MerchantSrv
             }
 
             var provider = (MerchantEnum)merchant.BankId;
+            if (provider != MerchantEnum.zarinpal && provider != MerchantEnum.snapppay)
+            {
+                return new BaseResultDto(false, "روش پرداخت انتخاب‌شده فعال نیست.");
+            }
             var gateway = _gatewayResolver.Resolve(provider);
 
             var res = await gateway.CallbackAsync(payment, merchant, _httpContextAccessor.HttpContext.Request);
 
-            payment.IsSuccess = res.IsSuccess;
+            if (res.IsFinal)
+                payment.IsSuccess = res.IsSuccess;
             payment.RefNumber = res.RefNumber;
             payment.Description = res.Description ?? res.ErrorMessage;
+            payment.GatewayLastError = res.IsSuccess ? null : res.ErrorMessage;
+            payment.GatewayStatus = string.IsNullOrWhiteSpace(res.GatewayStatus) ? payment.GatewayStatus : res.GatewayStatus;
+            payment.GatewayAmountRial = res.GatewayAmountRial ?? payment.GatewayAmountRial;
+            payment.GatewayVerifiedAt = res.VerifiedAt ?? payment.GatewayVerifiedAt;
+            payment.GatewaySettledAt = res.SettledAt ?? payment.GatewaySettledAt;
 
             _context.Payments.Update(payment);
             await _context.SaveChangesAsync();

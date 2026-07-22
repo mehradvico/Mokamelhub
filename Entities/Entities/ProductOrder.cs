@@ -16,7 +16,6 @@ namespace Entities.Entities
         public double Price { get; set; }
         public double BasePrice { get; set; }
         public double DiscountPrice { get; set; }
-        public double WalletPrice { get; set; }
         public double PaymentPrice { get; set; }
         public double SiteShare {  get; set; }
         public double StoreShare { get; set; }
@@ -46,7 +45,6 @@ namespace Entities.Entities
         public Code ProductOrderState { get; set; }
         public ICollection<ProductOrderStore> ProductOrderStores { get; set; }
         public ICollection<Payment> Payments { get; set; }
-        public Wallet Wallet { get; set; }
 
     }
 }

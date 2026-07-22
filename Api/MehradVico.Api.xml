@@ -2794,38 +2794,6 @@
              </summary>
             
         </member>
-        <member name="T:Api.Areas.Admin.Controllers.WalletController">
-            <summary>
-            مدیریت کیف پول
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.WalletController.Get(System.Int64)">
-            <summary>
-            اطلاعات آیتم
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.WalletController.Get(Application.Services.ProductSrvs.WalletSrv.Dto.WalletInputDto)">
-            <summary>
-            جستجو
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.WalletController.Post(Application.Services.ProductSrvs.WalletSrv.Dto.WalletDto)">
-            <summary>
-            آیتم جدید
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.WalletController.Delete(System.Int64)">
-            <summary>
-            حذف مورد در انتظار پرداخت
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.WalletController.GetAmount(System.Int64)">
-            <summary>
-            دریافت مقدار کیف پول کاربر
-            </summary>
-            <param name="userId">شناسه کاربر</param>
-            <returns>مقدار کیف پول</returns>
-        </member>
         <member name="T:Api.Areas.Common.Controllers.CityController">
              <summary>
              مدیریت شهرها
@@ -3046,7 +3014,7 @@
              </summary>
             
         </member>
-        <member name="M:Api.Areas.EndUser.Controllers.CurrentUserController.#ctor(Application.Common.Interface.ICurrentUserHelper,Application.Services.ProductSrvs.WalletSrv.IFace.IWalletService)">
+        <member name="M:Api.Areas.EndUser.Controllers.CurrentUserController.#ctor(Application.Common.Interface.ICurrentUserHelper)">
              <summary>
              کاربر جاری
              </summary>
@@ -3319,19 +3287,19 @@
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.UserProductController">
              <summary>
-             دریافت مقدار کیف پول
+             دریافت محصولات کاربر
              </summary>
             
         </member>
         <member name="M:Api.Areas.EndUser.Controllers.UserProductController.#ctor(Application.Common.Interface.ICurrentUserHelper,Application.Services.Accounting.UserProductSrv.Iface.IUserProductService)">
              <summary>
-             دریافت مقدار کیف پول
+             ایجاد کنترلر محصولات کاربر
              </summary>
             
         </member>
         <member name="M:Api.Areas.EndUser.Controllers.UserProductController.Get(Application.Services.Accounting.UserProductSrv.Dto.UserProductInputDto)">
             <summary>
-            دریافت مقدار کیف پول
+            دریافت محصولات کاربر
             </summary>
             <returns>
             </returns>
@@ -3352,47 +3320,6 @@
             <summary>
             فایل های محصول
             </summary>
-        </member>
-        <member name="T:Api.Areas.EndUser.Controllers.WalletAmountController">
-             <summary>
-             مدیریت مقدار کیف پول
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.EndUser.Controllers.WalletAmountController.#ctor(Application.Services.ProductSrvs.WalletSrv.IFace.IWalletService,Application.Common.Interface.ICurrentUserHelper)">
-             <summary>
-             مدیریت مقدار کیف پول
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.EndUser.Controllers.WalletAmountController.Get">
-            <summary>
-            دریافت مقدار کیف پول
-            </summary>
-            <returns>
-            </returns>
-        </member>
-        <member name="T:Api.Areas.EndUser.Controllers.WalletController">
-             <summary>
-             مدیریت کیف پول
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.EndUser.Controllers.WalletController.#ctor(Application.Services.ProductSrvs.WalletSrv.IFace.IWalletService,Application.Common.Interface.ICurrentUserHelper,Application.Services.Order.PaymentSrv.Iface.IPaymentService)">
-             <summary>
-             مدیریت کیف پول
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.EndUser.Controllers.WalletController.Get(Application.Services.ProductSrvs.WalletSrv.Dto.WalletInputDto)">
-            <summary>
-            تاریخچه کیف پول 
-            </summary>
-        </member>
-        <member name="M:Api.Areas.EndUser.Controllers.WalletController.Post(Application.Services.Order.ProductOrderSrv.Dto.PaymentStartDto)">
-            <summary>
-            آیتم جدید
-            </summary>  
         </member>
         <member name="T:Api.Controllers.AccountController">
             <summary>

@@ -115,29 +115,11 @@ namespace Resource {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Bonus amount added to wallet successfully.
-        /// </summary>
-        public static string BonusAmountAddedToWalletSuccessfully {
-            get {
-                return ResourceManager.GetString("BonusAmountAddedToWalletSuccessfully", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Bonus code can not be yours.
         /// </summary>
         public static string BonusCodeCanNotBeYours {
             get {
                 return ResourceManager.GetString("BonusCodeCanNotBeYours", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Bonus has already been added to the wallet for this ProductOrder.
-        /// </summary>
-        public static string BonusHasAlreadyBeenAddedToTheWalletForThisProductOrder {
-            get {
-                return ResourceManager.GetString("BonusHasAlreadyBeenAddedToTheWalletForThisProductOrder", resourceCulture);
             }
         }
         

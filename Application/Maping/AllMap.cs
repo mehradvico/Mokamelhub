@@ -65,7 +65,6 @@ using Application.Services.ProductSrvs.StoreCommentSrv.Dto;
 using Application.Services.ProductSrvs.StoreSrv.Dto;
 using Application.Services.ProductSrvs.VarietyItemSrv.Dto;
 using Application.Services.ProductSrvs.VarietySrv.Dto;
-using Application.Services.ProductSrvs.WalletSrv.Dto;
 using Application.Services.Setting.BaseDetailSrv.Dto;
 using Application.Services.Setting.CodeGroupSrv.Dto;
 using Application.Services.Setting.CodeSrv.Dto;
@@ -326,7 +325,17 @@ namespace Application.Maping
 
             //ProductOrder
             CreateMap<ProductOrder, ProductOrderDto>().ReverseMap();
-            CreateMap<ProductOrder, ProductOrderVDto>();
+            CreateMap<ProductOrder, ProductOrderVDto>()
+                .ForMember(x => x.SnappPayTransactionId, o => o.MapFrom(m => m.Payments
+                    .Where(p => p.GatewayTransactionId != null)
+                    .OrderByDescending(p => p.Id)
+                    .Select(p => p.GatewayTransactionId)
+                    .FirstOrDefault()))
+                .ForMember(x => x.SnappPayStatus, o => o.MapFrom(m => m.Payments
+                    .Where(p => p.GatewayTransactionId != null)
+                    .OrderByDescending(p => p.Id)
+                    .Select(p => p.GatewayStatus)
+                    .FirstOrDefault()));
             CreateMap<ProductOrderStore, ProductOrderStoreDto>().ReverseMap();
             CreateMap<ProductOrderStore, ProductOrderStoreVDto>();
             CreateMap<ProductOrderItem, ProductOrderItemDto>().ReverseMap();
@@ -436,11 +445,6 @@ namespace Application.Maping
             //Variety End ----------------------------------------------
 
 
-            //Wallet
-            CreateMap<Wallet, WalletDto>().ReverseMap();
-            CreateMap<Wallet, WalletVDto>();
-            CreateMap<Wallet, Wallet>().ForMember(x => x.Id, y => y.Ignore()).ForMember(x => x.ProductOrderId, y => y.Ignore()).ForMember(x => x.ProductOrder, y => y.Ignore());
-            //Wallet End ----------------------------------------------
         }
     }
 }

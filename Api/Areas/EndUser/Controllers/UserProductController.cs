@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.EndUser.Controllers
 {
     /// <summary>
-    /// دریافت مقدار کیف پول
+    /// دریافت محصولات کاربر
     /// </summary>
     ///
     [Area("EndUser")]
@@ -20,7 +20,7 @@ namespace Api.Areas.EndUser.Controllers
         private readonly long _currentUserId;
         private readonly IUserProductService _userProductService;
         /// <summary>
-        /// دریافت مقدار کیف پول
+        /// ایجاد کنترلر محصولات کاربر
         /// </summary>
         ///
         public UserProductController(ICurrentUserHelper currentUserHelper, IUserProductService userProductService)
@@ -29,7 +29,7 @@ namespace Api.Areas.EndUser.Controllers
             this._userProductService = userProductService;
         }
         /// <summary>
-        /// دریافت مقدار کیف پول
+        /// دریافت محصولات کاربر
         /// </summary>
         /// <returns>
         /// </returns>

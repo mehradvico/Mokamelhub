@@ -17,6 +17,7 @@ namespace Payment.Controllers
             _adminSettingHelper = adminSettingHelper;
         }
         [HttpGet("/callback/{id:long}")]
+        [HttpPost("/callback/{id:long}")]
         [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
         public async Task<IActionResult> Index(long id)
         {

@@ -12,8 +12,6 @@ namespace Application.Services.Order.PaymentSrv.Iface
         Task<Payment> FindAsync(long id);
         BaseSearchDto<PaymentVDto> Search(PaymentInputDto baseSearchDto);
         Task<BaseResultDto> StartPayment(PaymentStartDto dto);
-        Task<BaseResultDto> InsertWalletPaymentAsyncDto(PaymentStartDto dto);
         Task<BaseResultDto<PaymentDto>> CallbackPayment(long paymentId);
     }
 }
-

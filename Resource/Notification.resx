@@ -129,14 +129,8 @@
   <data name="AmountNotCorrect" xml:space="preserve">
     <value>Amount is not correct</value>
   </data>
-  <data name="BonusAmountAddedToWalletSuccessfully" xml:space="preserve">
-    <value>Bonus amount added to wallet successfully</value>
-  </data>
   <data name="BonusCodeCanNotBeYours" xml:space="preserve">
     <value>Bonus code can not be yours</value>
-  </data>
-  <data name="BonusHasAlreadyBeenAddedToTheWalletForThisProductOrder" xml:space="preserve">
-    <value>Bonus has already been added to the wallet for this ProductOrder</value>
   </data>
   <data name="CartIsEmpty" xml:space="preserve">
     <value>Cart is Empty</value>

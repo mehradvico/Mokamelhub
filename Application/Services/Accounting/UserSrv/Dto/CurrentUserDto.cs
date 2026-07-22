@@ -22,7 +22,6 @@ namespace Application.Services.Dto
         public string Expertise { get; set; }
         public bool IsCompanionUser { get; set; }
 
-        public double WalletAmount { get; set; }
         public PictureVDto Picture { get; set; }
 
     }

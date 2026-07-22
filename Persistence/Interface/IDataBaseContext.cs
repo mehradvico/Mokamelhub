@@ -84,7 +84,6 @@ namespace Persistence.Interface
         public DbSet<ProductOrderStore> ProductOrderStores { get; set; }
         public DbSet<Discount> Discounts { get; set; }
         public DbSet<DiscountGroup> DiscountGroups { get; set; }
-        public DbSet<Wallet> Wallets { get; set; }
         public DbSet<CommentLike> CommentLikes { get; set; }
         public DbSet<ProductReport> ProductReports { get; set; }
         public DbSet<ContactUsItem> ContactUsItems { get; set; }

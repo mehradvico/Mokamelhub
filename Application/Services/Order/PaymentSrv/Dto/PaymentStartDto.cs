@@ -24,6 +24,10 @@ namespace Application.Services.Order.ProductOrderSrv.Dto
         public string CallBackId { get; set; }
         public string CallbackUrl { get; set; }
         public UserMinVDto User { get; set; }
+        public string GatewayToken { get; set; }
+        public string GatewayTransactionId { get; set; }
+        public string GatewayStatus { get; set; }
+        public long? GatewayAmountRial { get; set; }
 
     }
 }

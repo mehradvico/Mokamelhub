@@ -15,6 +15,8 @@ namespace Application.Services.Order.PaymentGatewaySrv.Dto
         public string HtmlForm { get; set; }
         public string Token { get; set; } 
         public string GatewayOrderId { get; set; }
+        public string GatewayStatus { get; set; }
+        public long? GatewayAmountRial { get; set; }
     }
 }
 

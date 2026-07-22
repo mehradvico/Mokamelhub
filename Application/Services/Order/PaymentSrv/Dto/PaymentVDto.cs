@@ -23,6 +23,9 @@ namespace Application.Services.Order.ProductOrderSrv.Dto
         public int? FileId { get; set; }
         public string CallBackTypeLabel { get; set; }
         public string CallBackId { get; set; }
+        public string GatewayTransactionId { get; set; }
+        public string GatewayStatus { get; set; }
+        public long? GatewayAmountRial { get; set; }
         public MerchantVDto Merchant { get; set; }
         public FileVDto File { get; set; }
 

@@ -13,7 +13,6 @@
         UserRegisterTicket,
         TicketAssignAdmin,
         TicketAnswerd,
-        IncreaseWallet,
         UserSignUp,
         UserSignIn,
         UserContactUs,

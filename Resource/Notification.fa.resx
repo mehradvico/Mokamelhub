@@ -129,14 +129,8 @@
   <data name="AmountNotCorrect" xml:space="preserve">
     <value>مبلغ وارد شده معتبر نیست</value>
   </data>
-  <data name="BonusAmountAddedToWalletSuccessfully" xml:space="preserve">
-    <value>مبلغ جایزه با موفقیت به کیف پول اضافه شد</value>
-  </data>
   <data name="BonusCodeCanNotBeYours" xml:space="preserve">
     <value>نمی توانید کد معرف خود را وارد نمایید</value>
-  </data>
-  <data name="BonusHasAlreadyBeenAddedToTheWalletForThisProductOrder" xml:space="preserve">
-    <value>پاداش قبلاً برای این سفارش به کیف پول اضافه شده است</value>
   </data>
   <data name="CartIsEmpty" xml:space="preserve">
     <value>سبد خرید خالی است</value>

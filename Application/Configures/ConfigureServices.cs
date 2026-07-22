@@ -124,6 +124,8 @@ using Application.Services.Order.ProductOrderStoreItemSrv;
 using Application.Services.Order.ProductOrderStoreSrv.Iface;
 using Application.Services.Order.RebateSrv;
 using Application.Services.Order.RebateSrv.Iface;
+using Application.Services.Order.SnappPaySrv;
+using Application.Services.Order.SnappPaySrv.Iface;
 using Application.Services.PermissionSrv;
 using Application.Services.ProductSrv.ProductCategorySrv;
 using Application.Services.ProductSrvs.BrandCategorySrv;
@@ -166,8 +168,6 @@ using Application.Services.ProductSrvs.VarietyItemSrv;
 using Application.Services.ProductSrvs.VarietyItemSrv.Iface;
 using Application.Services.ProductSrvs.VarietySrv;
 using Application.Services.ProductSrvs.VarietySrv.Iface;
-using Application.Services.ProductSrvs.WalletSrv;
-using Application.Services.ProductSrvs.WalletSrv.IFace;
 using Application.Services.RoleSrv;
 using Application.Services.Setting.BaseDetailSrv;
 using Application.Services.Setting.BaseDetailSrv.Iface;
@@ -226,6 +226,9 @@ public static class ConfigureServices
                         .AddDataAnnotationsLocalization();
         services.AddHttpContextAccessor();
         services.AddHttpClient();
+        services.AddHttpClient("SnappPay");
+        services.AddMemoryCache();
+        services.AddOptions<SnappPayOptions>().BindConfiguration(SnappPayOptions.SectionName);
         services.AddScoped<ICurrentUserHelper, CurrentUserHelper>();
         services.AddScoped<IRoleService, RoleService>();
         services.AddScoped<IUserService, UserService>();
@@ -318,7 +321,6 @@ public static class ConfigureServices
         services.AddScoped<IDiscountGroupService, DiscountGroupService>();
         services.AddScoped<ISearchService, SearchService>();
         services.AddScoped<IProductExcelService, ProductExcelService>();
-        services.AddScoped<IWalletService, WalletService>();
         services.AddScoped<IUserProductService, UserProductService>();
         services.AddScoped<IGeographyService, MapIrService>();
         services.AddScoped<INeighborhoodService, NeighborhoodService>();
@@ -327,7 +329,11 @@ public static class ConfigureServices
         services.AddScoped<ICountryService, CountryService>();
         services.AddScoped<IDayToDateService, DayToDateService>();
         services.AddScoped<IPaymentGateway, ZarinPalGateway>();
+        services.AddScoped<IPaymentGateway, SnappPayGateway>();
         services.AddScoped<IPaymentGatewayResolver, PaymentGatewayResolver>();
+        services.AddScoped<ISnappPayClient, SnappPayClient>();
+        services.AddScoped<ISnappPayOrderBuilder, SnappPayOrderBuilder>();
+        services.AddScoped<ISnappPayService, SnappPayService>();
         services.AddScoped<ITorobService, TorobService>();
 
         services.AddCors(option => option.AddPolicy("AllowAnyOrigin", b => b.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));

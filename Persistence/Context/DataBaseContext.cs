@@ -92,7 +92,6 @@ namespace Persistence.Context
         public DbSet<ProductOrderStore> ProductOrderStores { get; set; }
         public DbSet<Discount> Discounts { get; set; }
         public DbSet<DiscountGroup> DiscountGroups { get; set; }
-        public DbSet<Wallet> Wallets { get; set; }
         public DbSet<CommentLike> CommentLikes { get; set; }
         public DbSet<ProductReport> ProductReports { get; set; }
         public DbSet<ContactUsItem> ContactUsItems { get; set; }
@@ -144,6 +143,10 @@ namespace Persistence.Context
             modelBuilder.Entity<ProductOrder>()
     .Property(et => et.Id)
     .ValueGeneratedNever();
+            modelBuilder.Entity<Payment>()
+                .HasIndex(x => x.GatewayTransactionId)
+                .IsUnique()
+                .HasFilter("[GatewayTransactionId] IS NOT NULL");
             modelBuilder.Entity<Category>().Navigation(e => e.Picture).AutoInclude();
             modelBuilder.Entity<Category>().Navigation(e => e.Icon).AutoInclude();
             modelBuilder.Entity<Brand>().Navigation(e => e.Picture).AutoInclude();

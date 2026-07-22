@@ -11,13 +11,11 @@ namespace Application.Services.Order.ProductOrderSrv.Iface
     public interface IProductOrderService : ICommonSrv<ProductOrder, ProductOrderDto>
     {
         ProductOrderSearchDto Search(ProductOrderInputDto baseSearchDto);
-        Task<BaseResultDto> ProductPaymentCallback(string productOrderId, bool fromWallet = false);
+        Task<BaseResultDto> ProductPaymentCallback(string productOrderId);
         Task<BaseResultDto> FindAsyncVDto(string id);
         Task<BaseResultDto> ChangeStatusAsync(ProductOrderDto dto);
         Task<BaseResultDto> ChangeStateAsync(ProductOrderDto dto);
         Task<BaseResultDto> ChangeTrackingCode(ProductOrderDto order);
         Task<BaseResultDto> ChangeDescriptions(ProductOrderDto order);
-        Task UpdateWalletAsync(string productOrderId, bool complete);
     }
 }
-

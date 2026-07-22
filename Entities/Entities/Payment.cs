@@ -1,6 +1,7 @@
 ﻿using Entities.Entities.CommonField;
 using Entities.Entities.Security;
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Entities.Entities
 {
@@ -24,11 +25,20 @@ namespace Entities.Entities
         public string CallBackTypeLabel { get; set; }
         public string CallBackId { get; set; }
         public string Token { get; set; }
+        [MaxLength(32)]
         public string GatewayStatus { get; set; }
+        [MaxLength(10)]
+        public string GatewayTransactionId { get; set; }
+        public long? GatewayAmountRial { get; set; }
+        [MaxLength(2000)]
+        public string GatewayLastError { get; set; }
+        public DateTime? GatewayVerifiedAt { get; set; }
+        public DateTime? GatewaySettledAt { get; set; }
+        public DateTime? GatewayUpdatedAt { get; set; }
+        public DateTime? GatewayCanceledAt { get; set; }
         public Merchant Merchant { get; set; }
         public File File { get; set; }
         public ProductOrder ProductOrder { get; set; }
-        public Wallet Wallet { get; set; }
         public Code Type { get; set; }
         public User User { get; set; }
 

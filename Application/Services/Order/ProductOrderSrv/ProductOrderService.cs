@@ -12,8 +12,6 @@ using Application.Services.Order.ProductOrderSrv.Dto;
 using Application.Services.Order.ProductOrderSrv.Iface;
 using Application.Services.Order.RebateSrv.Iface;
 using Application.Services.ProductSrvs.ProductSrv.Iface;
-using Application.Services.ProductSrvs.WalletSrv.Dto;
-using Application.Services.ProductSrvs.WalletSrv.IFace;
 using Application.Services.Setting.CodeSrv;
 using Application.Services.Setting.CodeSrv.Iface;
 using Application.Services.Setting.MessageSenderSrv.Iface;
@@ -38,12 +36,11 @@ namespace Application.Services.Order.ProductOrderSrv
         private readonly IProductService _productService;
         private readonly IRebateService _rebateService;
         private readonly IMessageSenderService _messageSenderService;
-        private readonly IWalletService _walletService;
         private readonly IAdminSettingHelper _adminSettingHelperService;
         private readonly IUserProductService _userProductService;
         private readonly ICodeService _codeService;
 
-        public ProductOrderService(IDataBaseContext _context, IUserProductService userProductService, IMapper mapper, ICodeService codeService, IAdminSettingHelper adminSettingHelper, IWalletService walletService, IUserService userService, IProductService productService, IRebateService rebateService, IMessageSenderService messageSenderService) : base(_context, mapper)
+        public ProductOrderService(IDataBaseContext _context, IUserProductService userProductService, IMapper mapper, ICodeService codeService, IAdminSettingHelper adminSettingHelper, IUserService userService, IProductService productService, IRebateService rebateService, IMessageSenderService messageSenderService) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
@@ -51,14 +48,13 @@ namespace Application.Services.Order.ProductOrderSrv
             this._productService = productService;
             this._rebateService = rebateService;
             this._messageSenderService = messageSenderService;
-            this._walletService = walletService;
             this._adminSettingHelperService = adminSettingHelper;
             this._userProductService = userProductService;
             this._codeService = codeService;
         }
         public async Task<BaseResultDto> FindAsyncVDto(string id)
         {
-            var item = await _context.ProductOrders.Include(s => s.User).Include(s => s.Address).Include(s => s.ProductOrderState).Include(s => s.ProductOrderStatus).Include(s => s.PaymentType).Include(s => s.ProductOrderStores).ThenInclude(s => s.ProductOrderItems).FirstOrDefaultAsync(s => s.Id == id);
+            var item = await _context.ProductOrders.Include(s => s.User).Include(s => s.Address).Include(s => s.ProductOrderState).Include(s => s.ProductOrderStatus).Include(s => s.PaymentType).Include(s => s.Payments).Include(s => s.ProductOrderStores).ThenInclude(s => s.ProductOrderItems).FirstOrDefaultAsync(s => s.Id == id);
             if (item != null)
             {
                 return new BaseResultDto<ProductOrderVDto>(true, data: mapper.Map<ProductOrderVDto>(item));
@@ -97,7 +93,7 @@ namespace Application.Services.Order.ProductOrderSrv
 
         public ProductOrderSearchDto Search(ProductOrderInputDto baseSearchDto)
         {
-            var query = _context.ProductOrders.Include(s => s.Rebate).Include(s => s.Address).Include(s => s.DeliveryType).Include(s => s.PaymentType).Include(s => s.User).Include(s => s.ProductOrderState).Include(s => s.ProductOrderStatus).Include(s => s.PaymentType).Include(s => s.ProductOrderStores).ThenInclude(s => s.ProductOrderItems).Where(s => s.Deleted == false).AsQueryable();
+            var query = _context.ProductOrders.Include(s => s.Rebate).Include(s => s.Address).Include(s => s.DeliveryType).Include(s => s.PaymentType).Include(s => s.User).Include(s => s.ProductOrderState).Include(s => s.ProductOrderStatus).Include(s => s.PaymentType).Include(s => s.Payments).Include(s => s.ProductOrderStores).ThenInclude(s => s.ProductOrderItems).Where(s => s.Deleted == false).AsQueryable();
 
             if (baseSearchDto.UserId.HasValue)
             {
@@ -121,7 +117,13 @@ namespace Application.Services.Order.ProductOrderSrv
             }
             if (!string.IsNullOrEmpty(baseSearchDto.Q))
             {
-                query = query.Where(s => s.User.FirstName.Contains(baseSearchDto.Q) || s.User.LastName.Contains(baseSearchDto.Q) || s.User.Mobile.Contains(baseSearchDto.Q));
+                query = query.Where(s => s.User.FirstName.Contains(baseSearchDto.Q) ||
+                                         s.User.LastName.Contains(baseSearchDto.Q) ||
+                                         s.User.Mobile.Contains(baseSearchDto.Q) ||
+                                         _context.Payments.Any(p =>
+                                             (p.ProductOrderId == s.Id || p.CallBackId == s.Id) &&
+                                             p.GatewayTransactionId != null &&
+                                             p.GatewayTransactionId.Contains(baseSearchDto.Q)));
             }
             if (!string.IsNullOrEmpty(baseSearchDto.TrackingCode))
             {
@@ -185,34 +187,28 @@ namespace Application.Services.Order.ProductOrderSrv
             return new ProductOrderSearchDto(baseSearchDto, query, mapper);
         }
 
-        public async Task<BaseResultDto> ProductPaymentCallback(string productOrderId, bool fromWallet = false)
+        public async Task<BaseResultDto> ProductPaymentCallback(string productOrderId)
         {
             var productOrder = await _context.ProductOrders.AsTracking().Include(s => s.User).Include(s => s.ProductOrderStores).ThenInclude(s => s.Store).Include(s => s.ProductOrderStores).ThenInclude(s => s.ProductOrderItems).ThenInclude(s => s.ProductItem).ThenInclude(s => s.Product).FirstOrDefaultAsync(s => s.Id == productOrderId);
-            if (productOrder.Wallet != null)
-            {
-                var amount = await _walletService.GetAmountValueAsync(productOrder.UserId);
-                if (amount >= productOrder.WalletPrice)
-                {
-                    var walletItem = new WalletDto() { Painding = false, Amount = productOrder.WalletPrice, UserId = productOrder.UserId, ProductOrderId = productOrder.Id };
-                    await _walletService.InsertUpdateProductOrderAsync(walletItem, true);
-                }
-                else
-                {
-                    return new BaseResultDto(false);
+            if (productOrder == null)
+                return new BaseResultDto(false, Resource.Notification.ResourceNotFind);
 
-                }
-            }
+            if (productOrder.IsPaid)
+                return new BaseResultDto(true);
             productOrder.IsPaid = true;
             await UpdateProductOrderCommissionDto(productOrder);
             await _context.SaveChangesAsync();
             var cart = await _context.Carts.AsTracking().Include(s => s.CartStores.Where(a => a.Active)).ThenInclude(s => s.CartItems).FirstOrDefaultAsync(s => s.UserId == productOrder.UserId);
-            cart.DeliveryId = null;
-            foreach (var item in cart.CartStores.ToList())
+            if (cart != null)
             {
-                _context.CartItems.RemoveRange(item.CartItems);
-                _context.CartStores.Remove(item);
+                cart.DeliveryId = null;
+                foreach (var item in cart.CartStores.ToList())
+                {
+                    _context.CartItems.RemoveRange(item.CartItems);
+                    _context.CartStores.Remove(item);
+                }
+                await _context.SaveChangesAsync();
             }
-            await _context.SaveChangesAsync();
             await _userProductService.InsertOrderItemAsyncDto(productOrder);
             await _productService.IncreaseSellCountAsync(productOrder);
             _rebateService.IncreaseUseCount(productOrder);
@@ -368,10 +364,6 @@ namespace Application.Services.Order.ProductOrderSrv
 
             }
             return new BaseResultDto(true);
-        }
-        public async Task UpdateWalletAsync(string productOrderId, bool complete)
-        {
-            await _walletService.InsertUpdateProductOrderAsync(new WalletDto { ProductOrderId = productOrderId }, complete: complete);
         }
 
     }

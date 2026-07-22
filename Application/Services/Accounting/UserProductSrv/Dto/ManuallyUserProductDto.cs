@@ -2,6 +2,5 @@
 {
     public class ManuallyUserProductDto : UserProductDto
     {
-        public bool FromWallet { get; set; }
     }
 }

@@ -16,7 +16,6 @@ namespace Application.Services.Order.ProductOrderSrv.Dto
         public double Price { get; set; }
         public double BasePrice { get; set; }
         public double DiscountPrice { get; set; }
-        public double WalletPrice { get; set; }
         public double FinalPrice { get; set; }
         public double PaymentPrice { get; set; }
         public string BonusCode { get; set; }

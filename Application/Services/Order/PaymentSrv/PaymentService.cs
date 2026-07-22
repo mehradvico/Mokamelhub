@@ -8,11 +8,10 @@ using Application.Services.Order.PaymentSrv.Dto;
 using Application.Services.Order.PaymentSrv.Iface;
 using Application.Services.Order.ProductOrderSrv.Dto;
 using Application.Services.Order.ProductOrderSrv.Iface;
-using Application.Services.ProductSrvs.WalletSrv.IFace;
-using Application.Services.Setting.CodeSrv.Iface;
 using AutoMapper;
 using Entities.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Persistence.Interface;
 using System;
 using System.Linq;
@@ -26,43 +25,23 @@ namespace Application.Services.Order.PaymentSrv
         private readonly IMapper mapper;
         private readonly IMerchantService _merchantService;
         private readonly IProductOrderService _productOrderService;
-        private readonly IWalletService _walletService;
-        private readonly ICodeService _codeService;
-        private const string PaymentCallbackBaseUrl = "https://payment.mokamelhub.com/callback";
+        private readonly string _paymentCallbackBaseUrl;
 
         public PaymentService(
             IDataBaseContext _context,
             IMapper mapper,
-            ICodeService codeService,
-            IWalletService walletService,
             IMerchantService merchantService,
-            IProductOrderService productOrderService) : base(_context, mapper)
+            IProductOrderService productOrderService,
+            IConfiguration configuration) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
             _merchantService = merchantService;
             _productOrderService = productOrderService;
-            _walletService = walletService;
-            _codeService = codeService;
-        }
-
-        public async Task<BaseResultDto> InsertWalletPaymentAsyncDto(PaymentStartDto dto)
-        {
-            if (dto.Amount < 10000)
-            {
-                dto.Amount = 10000;
-            }
-            else if (dto.MerchantId == null)
-            {
-                return new BaseResultDto(false, Resource.Notification.PleaseSelectTheMerchant);
-
-            }
-            var paymentTypeWallet = await _codeService.GetByLabelAsync(PaymentTypeEnum.PaymentType_Wallet.ToString());
-            dto.IsOnline = true;
-            dto.ProductOrderId = null;
-            dto.TypeId = paymentTypeWallet.Id;
-            return await StartPayment(dto);
-
+            var paymentBaseUrl = configuration["Urls:PaymentBaseUrl"];
+            if (string.IsNullOrWhiteSpace(paymentBaseUrl))
+                paymentBaseUrl = "https://payment.mokamelhub.com";
+            _paymentCallbackBaseUrl = $"{paymentBaseUrl.TrimEnd('/')}/callback";
         }
 
         public async Task<BaseResultDto> StartPayment(PaymentStartDto dto)
@@ -82,7 +61,7 @@ namespace Application.Services.Order.PaymentSrv
                 await _context.SaveChangesAsync();
 
                 dto.PaymentId = item.Id;
-                dto.CallbackUrl = $"{PaymentCallbackBaseUrl}/{item.Id}";
+                dto.CallbackUrl = $"{_paymentCallbackBaseUrl}/{item.Id}";
 
                 var initPayment = await _merchantService.StartAsync(dto);
 
@@ -90,6 +69,16 @@ namespace Application.Services.Order.PaymentSrv
                 {
                     item.IsSuccess = false;
                     item.Description = string.Format("{0}:{1}", Resource.Notification.ErrorOnStartPayment, initPayment.Messages);
+                    _context.Payments.Update(item);
+                    await _context.SaveChangesAsync(true);
+                }
+                else
+                {
+                    item.Token = dto.GatewayToken;
+                    item.GatewayTransactionId = dto.GatewayTransactionId;
+                    item.GatewayStatus = dto.GatewayStatus;
+                    item.GatewayAmountRial = dto.GatewayAmountRial;
+                    item.GatewayLastError = null;
                     _context.Payments.Update(item);
                     await _context.SaveChangesAsync(true);
                 }
@@ -130,7 +119,7 @@ namespace Application.Services.Order.PaymentSrv
                     {
                         if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.ProductOrder.ToString())
                         {
-                            var productPaymentCallback = await _productOrderService.ProductPaymentCallback(payment.ProductOrderId, fromWallet: true);
+                            var productPaymentCallback = await _productOrderService.ProductPaymentCallback(payment.ProductOrderId);
 
                             if (!productPaymentCallback.IsSuccess)
                             {
@@ -141,17 +130,9 @@ namespace Application.Services.Order.PaymentSrv
                             }
                         }
                     }
-                    else if (payment.Type.Label == PaymentTypeEnum.PaymentType_Wallet.ToString())
-                    {
-                        await _walletService.WalletPaymentCallback(payment);
-                    }
                 }
                 else
                 {
-                    if (payment.Type.Label == PaymentTypeEnum.PaymentType_ProductOrder.ToString())
-                    {
-                        await _productOrderService.UpdateWalletAsync(payment.ProductOrderId, false);
-                    }
                 }
 
                 return new BaseResultDto<PaymentDto>(

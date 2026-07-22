@@ -33,7 +33,8 @@ namespace Application.Services.Order.ProductOrderSrv.Dto
         public double DeliveryPrice { get; set; }
         public string TrackingCode { get; set; }
         public DateTime? HasCancelRequestDate { get; set; }
-        public double WalletPrice { get; set; }
+        public string SnappPayTransactionId { get; set; }
+        public string SnappPayStatus { get; set; }
         public RebateVDto Rebate { get; set; }
         public UserVDto User { get; set; }
         public AddressVDto Address { get; set; }

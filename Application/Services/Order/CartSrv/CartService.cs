@@ -14,7 +14,6 @@ using Application.Services.Order.ProductOrderSrv.Dto;
 using Application.Services.Order.ProductOrderSrv.Iface;
 using Application.Services.Order.RebateSrv.Iface;
 using Application.Services.ProductSrvs.ProductItemSrv.Iface;
-using Application.Services.ProductSrvs.WalletSrv.IFace;
 using Application.Services.Setting.CodeSrv.Iface;
 using AutoMapper;
 using Entities.Entities;
@@ -39,12 +38,11 @@ namespace Application.Services.Order.CartSrv
         private readonly IPaymentService _paymentService;
         private readonly ICurrentUserHelper _currentUser;
         private readonly IDeliveryService _deliveryService;
-        private readonly IWalletService _walletService;
         private readonly IUserService _userService;
         private readonly IAddressService _addressService;
 
 
-        public CartService(IDataBaseContext _context, IMapper mapper, IUserService userService, IAddressService addressService, IProductItemService productItemService, IRebateService rebateService, IProductOrderService productOrderService, IProductOrderItemService productOrderItemService, ICodeService codeService, IPaymentService paymentService, ICurrentUserHelper currentUser, IDeliveryService deliveryService, IWalletService walletService)
+        public CartService(IDataBaseContext _context, IMapper mapper, IUserService userService, IAddressService addressService, IProductItemService productItemService, IRebateService rebateService, IProductOrderService productOrderService, IProductOrderItemService productOrderItemService, ICodeService codeService, IPaymentService paymentService, ICurrentUserHelper currentUser, IDeliveryService deliveryService)
         {
             this._context = _context;
             this.mapper = mapper;
@@ -56,7 +54,6 @@ namespace Application.Services.Order.CartSrv
             _paymentService = paymentService;
             _currentUser = currentUser;
             _deliveryService = deliveryService;
-            _walletService = walletService;
             _userService = userService;
             _addressService = addressService;
         }
@@ -532,8 +529,6 @@ namespace Application.Services.Order.CartSrv
                 var insertStatus = await _codeService.GetByLabelAsync(ProductOrderStatusEnum.ProductOrderStatus_Insert.ToString());
                 var normalState = await _codeService.GetByLabelAsync(ProductOrderStateEnum.ProductOrderState_Normal.ToString());
                 var orderPaymentTypeOnline = await _codeService.GetByLabelAsync(OrderPaymentTypeEnum.OrderPaymentType_Online.ToString());
-                var orderPaymentTypeWallet = await _codeService.GetByLabelAsync(OrderPaymentTypeEnum.OrderPaymentType_Wallet.ToString());
-                var orderPaymentTypeCombinatorial = await _codeService.GetByLabelAsync(OrderPaymentTypeEnum.OrderPaymentType_Combinatorial.ToString());
                 var orderPaymentTypeNot = await _codeService.GetByLabelAsync(OrderPaymentTypeEnum.OrderPaymentType_Not.ToString());
                 var paymentTypeProductOrder = await _codeService.GetByLabelAsync(PaymentTypeEnum.PaymentType_ProductOrder.ToString());
 
@@ -548,22 +543,7 @@ namespace Application.Services.Order.CartSrv
                 {
                     productOrderDto.PaymentTypeId = orderPaymentTypeOnline.Id;
 
-                    if (cartUpdate.FromWallet)
-                    {
-                        var walletAmount = await _walletService.GetAmountValueAsync(cart.UserId.Value);
-                        if (walletAmount < 1)
-                        {
-                            return new BaseResultDto(isSuccess: false);
-                        }
-                        if (walletAmount < productOrderDto.PaymentPrice && cart.MerchantId == null)
-                        {
-                            return new BaseResultDto(isSuccess: false, val: Resource.Notification.PleaseSelectTheMerchant);
-
-                        }
-                        productOrderDto.WalletPrice = productOrderDto.PaymentPrice;
-                        productOrderDto.PaymentTypeId = orderPaymentTypeWallet.Id;
-                    }
-                    else if (productOrderDto.PaymentPrice > 0 && cart.MerchantId == null)
+                    if (productOrderDto.PaymentPrice > 0 && cart.MerchantId == null)
                     {
                         return new BaseResultDto(isSuccess: false, val: Resource.Notification.PleaseSelectTheMerchant);
                     }
@@ -590,28 +570,6 @@ namespace Application.Services.Order.CartSrv
                     CallBackId = insertedProductOrder.Data.Id,
                     CallbackUrl = null
                 };
-                if (cartUpdate.FromWallet)
-                {
-                    var walletAmount = await _walletService.GetAmountValueAsync(cart.UserId.Value);
-
-                    if (walletAmount >= productOrderDto.PaymentPrice)
-                    {
-                        await _productOrderService.ProductPaymentCallback(insertedProductOrder.Data.Id, true);
-                        return new BaseResultDto<PaymentStartDto>(true, paymentDto);
-                    }
-                    else
-                    {
-                        paymentDto.Amount = productOrderDto.PaymentPrice - walletAmount;
-                        paymentDto.ProductOrderId = null;
-                        paymentDto.CallBackTypeLabel = PaymentCallbackTypeEnum.ProductOrder.ToString();
-                        paymentDto.CallBackId = productOrderDto.Id;
-                        return await _paymentService.InsertWalletPaymentAsyncDto(paymentDto);
-
-                    }
-
-
-                }
-
                 return await _paymentService.StartPayment(paymentDto);
             }
             else

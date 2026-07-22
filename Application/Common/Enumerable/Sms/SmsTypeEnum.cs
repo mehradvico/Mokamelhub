@@ -12,7 +12,6 @@
         UserSignIn,
         UserRegisterOrder,
         UserLikeProduct,
-        IncreaseWallet,
         UserProductAssign,
         UserReserveCompanion
     }

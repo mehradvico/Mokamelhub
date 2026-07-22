@@ -21,7 +21,6 @@ namespace Application.Common.Helpers
         public static string PaymentTripUrl(long id) => $"{BaseUrl}{_configuration["Urls:TripUrl"].Replace("id", id.ToString())}";
         public static string PaymentCargoUrl(long id) => $"{BaseUrl}{_configuration["Urls:CargoUrl"].Replace("id", id.ToString())}";
         public static string PaymentInsuranceUrl(long id) => $"{BaseUrl}{_configuration["Urls:InsuranceUrl"].Replace("id", id.ToString())}";
-        public static string PaymentWalletUrl(long id) => $"{BaseUrl}{_configuration["Urls:WalletUrl"].Replace("Id", id.ToString())}";
         public static bool IsOwner
         {
             get
