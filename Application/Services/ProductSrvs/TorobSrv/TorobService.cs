@@ -198,17 +198,8 @@ namespace Application.Services.TorobSrv
                 .Distinct()
                 .ToList();
 
-            var availableIds = await BaseFeedQuery()
-                .Where(item => requestedIds.Contains(item.Id))
-                .Select(item => item.Id)
-                .ToListAsync(cancellationToken);
-
-            var orderedIds = requestedIds
-                .Where(availableIds.Contains)
-                .ToList();
-
             var items = await LoadProductItemsAsync(
-                orderedIds,
+                requestedIds,
                 cancellationToken
             );
 
@@ -220,24 +211,75 @@ namespace Application.Services.TorobSrv
             CancellationToken cancellationToken
         )
         {
-            var requestedIds = pageUrls
-                .Select(ExtractProductItemIdFromUrl)
+            var requestedUrls = pageUrls
+                .Select(url => new
+                {
+                    ItemId = ExtractProductItemIdFromUrl(url),
+                    ProductLabel = ExtractProductLabelFromUrl(url)
+                })
+                .ToList();
+
+            var requestedIds = requestedUrls
+                .Select(url => url.ItemId)
                 .Where(id => id.HasValue && id.Value > 0)
                 .Select(id => id.Value)
                 .Distinct()
                 .ToList();
 
-            var availableIds = await BaseFeedQuery()
-                .Where(item => requestedIds.Contains(item.Id))
-                .Select(item => item.Id)
-                .ToListAsync(cancellationToken);
-
-            var orderedIds = requestedIds
-                .Where(availableIds.Contains)
+            var requestedLabels = requestedUrls
+                .Where(url => !url.ItemId.HasValue)
+                .Select(url => url.ProductLabel)
+                .Where(label => !string.IsNullOrWhiteSpace(label))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
 
+            if (requestedLabels.Count > 0)
+            {
+                var labelItems = await _context.ProductItems
+                    .IgnoreAutoIncludes()
+                    .AsNoTracking()
+                    .Where(item =>
+                        item.Product != null &&
+                        requestedLabels.Contains(item.Product.ProductLabel)
+                    )
+                    .Select(item => new
+                    {
+                        item.Id,
+                        item.Active,
+                        item.SystemActive,
+                        item.Deleted,
+                        item.Quantity,
+                        ProductLabel = item.Product.ProductLabel
+                    })
+                    .ToListAsync(cancellationToken);
+
+                foreach (var label in requestedLabels)
+                {
+                    var matchedItem = labelItems
+                        .Where(item => string.Equals(
+                            item.ProductLabel,
+                            label,
+                            StringComparison.OrdinalIgnoreCase
+                        ))
+                        .OrderByDescending(item =>
+                            !item.Deleted &&
+                            item.Active &&
+                            item.SystemActive &&
+                            item.Quantity > 0
+                        )
+                        .ThenBy(item => item.Id)
+                        .FirstOrDefault();
+
+                    if (matchedItem != null &&
+                        !requestedIds.Contains(matchedItem.Id))
+                    {
+                        requestedIds.Add(matchedItem.Id);
+                    }
+                }
+            }
+
             var items = await LoadProductItemsAsync(
-                orderedIds,
+                requestedIds,
                 cancellationToken
             );
 
@@ -345,8 +387,12 @@ namespace Application.Services.TorobSrv
             }
 
             var isAvailable =
+                !item.Deleted &&
+                item.Active &&
+                item.SystemActive &&
                 item.Quantity > 0 &&
                 currentPrice > 0 &&
+                !product.Deleted &&
                 product.Active &&
                 product.StatusId ==
                 (long)ProductStatusEnum.ProductStatus_Available;
@@ -582,6 +628,34 @@ namespace Application.Services.TorobSrv
                 {
                     return itemId;
                 }
+            }
+
+            return null;
+        }
+
+        private static string ExtractProductLabelFromUrl(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url) ||
+                !Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            {
+                return null;
+            }
+
+            var segments = uri.AbsolutePath
+                .Split('/', StringSplitOptions.RemoveEmptyEntries);
+
+            for (var index = 0; index < segments.Length - 1; index++)
+            {
+                if (!segments[index].Equals(
+                        "products",
+                        StringComparison.OrdinalIgnoreCase
+                    ))
+                {
+                    continue;
+                }
+
+                return Uri.UnescapeDataString(segments[index + 1])
+                    .Trim();
             }
 
             return null;
