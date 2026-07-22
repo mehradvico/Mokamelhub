@@ -23,9 +23,12 @@
     <title>@ViewData["Title"]</title>
 
     <style>
-        @@font -face {
+        @@font-face {
             font-family: "YekanBakh";
             src: url("/Assets/Payment/fonts/YEKAN BAKH.TTF") format("truetype");
+            font-weight: 100 900;
+            font-style: normal;
+            font-display: swap;
         }
 
         * {
@@ -49,8 +52,8 @@
             direction: rtl;
         }
 
-        @@Media (max-width: 768px) {
-        body {
+        @@media (max-width: 768px) {
+            body {
                 background-size: 130vw;
                 background-position: -20vw center;
             }

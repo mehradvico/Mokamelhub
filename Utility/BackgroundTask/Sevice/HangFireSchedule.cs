@@ -19,8 +19,6 @@ namespace Api.HangFire
         private static bool SyncSmsIsSyncing = false;
         private static bool SyncCloseTicketSyncing = false;
         private static bool SyncExpiredDiscountSyncing = false;
-        private static bool SyncReminderSyncing = false;
-        private static bool SyncDriverAcceptSyncing = false;
         public HangFireSchedule(IRecurringJobManager recurringJobManager, ITicketService ticketService, ISmsService smsService, IRestSharpApi restSharpApi, IProductOrderService productOrderService, IDiscountService discountService)
         {
             _recurringJobManager = recurringJobManager;

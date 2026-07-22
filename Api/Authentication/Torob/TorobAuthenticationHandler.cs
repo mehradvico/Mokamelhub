@@ -214,7 +214,7 @@ namespace Api.Authentication.Torob
             return AuthenticateResult.Success(ticket);
         }
 
-        private string ValidateAlgorithm(string encodedHeader)
+        private string? ValidateAlgorithm(string encodedHeader)
         {
             byte[] headerBytes;
 
@@ -280,7 +280,7 @@ namespace Api.Authentication.Torob
                 return "torob token header version is not provided";
             }
 
-            string headerVersion;
+            string? headerVersion;
 
             if (versionElement.ValueKind == JsonValueKind.Number)
             {
@@ -349,7 +349,7 @@ namespace Api.Authentication.Torob
             return signer.VerifySignature(signature);
         }
 
-        private string ValidateLifetime(
+        private string? ValidateLifetime(
             JwtSecurityToken jwtToken
         )
         {
@@ -419,7 +419,7 @@ namespace Api.Authentication.Torob
             return null;
         }
 
-        private string ValidateIssuer(
+        private string? ValidateIssuer(
             JwtSecurityToken jwtToken
         )
         {
@@ -439,7 +439,7 @@ namespace Api.Authentication.Torob
                 : "invalid torob token issuer";
         }
 
-        private string ValidateAudience(
+        private string? ValidateAudience(
             JwtSecurityToken jwtToken
         )
         {

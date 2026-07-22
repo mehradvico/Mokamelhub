@@ -110,7 +110,12 @@ builder.Services
             ValidIssuer = builder.Configuration["JWtConfig:issuer"],
             ValidAudience = builder.Configuration["JWtConfig:audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["JWtConfig:key"])
+                Encoding.UTF8.GetBytes(
+                    builder.Configuration["JWtConfig:key"]
+                    ?? throw new InvalidOperationException(
+                        "JWtConfig:key is not configured."
+                    )
+                )
             ),
             ValidateIssuerSigningKey = true,
             ValidateLifetime = true

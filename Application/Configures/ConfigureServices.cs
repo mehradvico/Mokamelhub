@@ -332,10 +332,14 @@ public static class ConfigureServices
 
         services.AddCors(option => option.AddPolicy("AllowAnyOrigin", b => b.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
 
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.AddProfile(new AllMap());
-        });
+        var mapperConfig = new MapperConfiguration(
+            cfg =>
+            {
+                cfg.AddProfile(new AllMap());
+            },
+            Microsoft.Extensions.Logging.Abstractions
+                .NullLoggerFactory.Instance
+        );
 
         IMapper mapper = mapperConfig.CreateMapper();
 

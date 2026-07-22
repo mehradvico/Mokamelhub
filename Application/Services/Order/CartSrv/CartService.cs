@@ -24,7 +24,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using ZarinPal.Class;
 
 namespace Application.Services.Order.CartSrv
 {
@@ -627,4 +626,3 @@ namespace Application.Services.Order.CartSrv
         }
     }
 }
-
