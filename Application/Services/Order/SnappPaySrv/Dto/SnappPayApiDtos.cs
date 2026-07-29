@@ -82,7 +82,9 @@ namespace Application.Services.Order.SnappPaySrv.Dto
     {
         public string TransactionId { get; set; }
         public string Status { get; set; }
-        public long Amount { get; set; }
+
+        [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
+        public decimal Amount { get; set; }
     }
 
     public class SnappPayCartItemRequest

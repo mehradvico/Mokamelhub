@@ -553,12 +553,14 @@ namespace Application.Services.TorobSrv
         private string BuildPictureUrl(Picture picture)
         {
             if (picture == null ||
-                string.IsNullOrWhiteSpace(picture.Url))
+                string.IsNullOrWhiteSpace(picture.Url) ||
+                string.IsNullOrWhiteSpace(picture.Name))
             {
                 return null;
             }
 
-            var path = picture.Url.Trim();
+            var path =
+                $"{picture.Url.Trim().TrimEnd('/')}/{picture.Name.Trim().TrimStart('/')}";
 
             if (Uri.TryCreate(
                     path,
