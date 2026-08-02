@@ -44,34 +44,32 @@ namespace Application.Services.Order.SnappPaySrv
                 throw new ArgumentNullException(nameof(order));
 
             var request = new SnappPayOrderRequest();
-            long itemDiscountRial = 0;
-
             foreach (var store in order.ProductOrderStores?.Where(x => !x.Deleted) ?? Enumerable.Empty<ProductOrderStore>())
             {
+                var shippingAmountRial = ToRial(store.DeliveryPrice);
                 var cart = new SnappPayCartRequest
                 {
                     CartId = store.Id,
-                    IsShipmentIncluded = false,
+                    IsShipmentIncluded = shippingAmountRial == 0,
                     IsTaxIncluded = true,
-                    ShippingAmount = ToRial(store.DeliveryPrice),
+                    ShippingAmount = shippingAmountRial,
                     TaxAmount = 0
                 };
 
                 foreach (var item in store.ProductOrderItems?.Where(x => !x.Deleted && x.Count > 0) ?? Enumerable.Empty<ProductOrderItem>())
                 {
                     var product = item.ProductItem?.Product;
-                    var baseAmountRial = ToRial(item.BasePrice);
+                    var finalItemAmountRial = ToRial(item.Price);
                     cart.CartItems.Add(new SnappPayCartItemRequest
                     {
                         Id = item.Id,
-                        Amount = baseAmountRial,
+                        Amount = finalItemAmountRial,
                         Count = item.Count,
                         Name = Limit(product?.Name ?? item.Description ?? $"محصول {item.ProductItemId}", 255),
                         Category = Limit(product?.Category?.Name ?? "مکمل", 255),
                         CommissionType = _options.CommissionType > 0 ? _options.CommissionType : 100
                     });
 
-                    itemDiscountRial += ToRial(Math.Max(0, item.BasePrice - item.Price) * item.Count);
                 }
 
                 if (cart.CartItems.Count == 0)
@@ -85,7 +83,7 @@ namespace Application.Services.Order.SnappPaySrv
                 throw new InvalidOperationException("سفارش هیچ آیتم فعالی برای ارسال به اسنپ‌پی ندارد.");
 
             var totalRial = request.CartList.Sum(x => x.TotalAmount);
-            request.DiscountAmount = checked(itemDiscountRial + ToRial(Math.Max(0, order.RebatePrice)));
+            request.DiscountAmount = ToRial(Math.Max(0, order.RebatePrice));
             request.DiscountAmount = Math.Min(request.DiscountAmount, totalRial);
 
             var afterDiscount = totalRial - request.DiscountAmount;

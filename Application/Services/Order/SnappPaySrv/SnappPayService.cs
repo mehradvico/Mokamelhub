@@ -137,6 +137,15 @@ namespace Application.Services.Order.SnappPaySrv
             if (order == null)
                 return Fail<SnappPayOrderOperationResultDto>("سفارش پیدا نشد.");
 
+            var activeItemQuantity = order.ProductOrderStores
+                .Where(store => !store.Deleted)
+                .SelectMany(store => store.ProductOrderItems)
+                .Where(item => !item.Deleted && item.Count > 0)
+                .Sum(item => item.Count);
+
+            if (activeItemQuantity <= 1)
+                return Fail<SnappPayOrderOperationResultDto>("برای سفارشی که فقط یک آیتم در آن باقی مانده، Update مجاز نیست؛ برای مرجوعی کامل از Cancel استفاده کنید.");
+
             var allItems = order.ProductOrderStores.SelectMany(x => x.ProductOrderItems).ToDictionary(x => x.Id);
             var duplicateId = dto.Items.GroupBy(x => x.ProductOrderItemId).FirstOrDefault(x => x.Count() > 1)?.Key;
             if (duplicateId.HasValue)
