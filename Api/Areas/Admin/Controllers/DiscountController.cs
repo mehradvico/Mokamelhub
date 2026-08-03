@@ -55,7 +55,6 @@ namespace Api.Areas.Admin.Controllers
         /// آیتم جدید
         /// </summary>  
         [HttpPost]
-        [AllowAnonymous]
         [ProducesResponseType(typeof(BaseResultDto<DiscountDto>), 200)]
         public async Task<IActionResult> Post(DiscountDto discountDto)
         {
@@ -81,10 +80,9 @@ namespace Api.Areas.Admin.Controllers
         ///
         [HttpDelete]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public async Task<IActionResult> Delete(DiscountDto discount)
+        public async Task<IActionResult> Delete([FromQuery] long id)
         {
-
-            var dto = await discountService.DeleteAsync(discount);
+            var dto = await discountService.DeleteAsync(id);
             return Ok(dto);
         }
     }

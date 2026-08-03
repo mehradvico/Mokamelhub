@@ -31,10 +31,31 @@ namespace Application.Services.Content.AddressSrv
             return base.InsertAsyncDto(dto);
         }
 
+        public override async Task<BaseResultDto<AddressDto>> FindAsyncDto(long id)
+        {
+            var currentUserId = _currentUserHelper.CurrentUser.UserId;
+            var item = await _context.Addresses
+                .FirstOrDefaultAsync(s => s.Id == id && s.UserId == currentUserId && !s.Deleted);
+
+            return item == null
+                ? new BaseResultDto<AddressDto>(false, data: null)
+                : new BaseResultDto<AddressDto>(true, mapper.Map<AddressDto>(item));
+        }
+
         public override BaseResultDto UpdateDto(AddressDto dto)
         {
             try
             {
+                var currentUserId = _currentUserHelper.CurrentUser.UserId;
+                if (!_context.Addresses.Any(s =>
+                    s.Id == dto.Id &&
+                    s.UserId == currentUserId &&
+                    !s.Deleted))
+                {
+                    return new BaseResultDto(false, "آدرس انتخاب‌شده معتبر نیست.");
+                }
+
+                dto.UserId = currentUserId;
                 var modelCheker = ModelHelper<AddressDto>.ModelErrors(dto);
                 if (!modelCheker.IsSuccess)
                 {
@@ -64,6 +85,24 @@ namespace Application.Services.Content.AddressSrv
                 return new BaseResultDto(isSuccess: false, val: ex.Message);
             }
         }
+
+        public override BaseResultDto DeleteDto(long id)
+        {
+            var currentUserId = _currentUserHelper.CurrentUser.UserId;
+            var item = _context.Addresses.FirstOrDefault(s =>
+                s.Id == id &&
+                s.UserId == currentUserId &&
+                !s.Deleted);
+
+            if (item == null)
+                return new BaseResultDto(false, "آدرس انتخاب‌شده معتبر نیست.");
+
+            item.Deleted = true;
+            _context.Addresses.Update(item);
+            _context.SaveChanges();
+            return new BaseResultDto(true);
+        }
+
         public AddressSearchDto Search(AddressInputDto searchDto)
         {
             var query = _context.Addresses.Where(s => !s.Deleted).AsQueryable();

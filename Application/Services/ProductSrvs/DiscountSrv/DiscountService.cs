@@ -37,13 +37,14 @@ namespace Application.Services.ProductSrvs.DiscountSrv
 
             if (expireds.Any())
             {
+                expireds.ForEach(s => s.Active = false);
+                _context.Discounts.UpdateRange(expireds);
+                await _context.SaveChangesAsync();
+
                 foreach (var discount in expireds)
                 {
                     await UpdateDiscountsAsync(discount);
                 }
-                expireds.ForEach(s => s.Active = false);
-                _context.Discounts.UpdateRange(expireds);
-                await _context.SaveChangesAsync();
             }
         }
         private async Task UpdateDiscountsAsync(Discount discount)
@@ -82,8 +83,10 @@ namespace Application.Services.ProductSrvs.DiscountSrv
         }
         public async Task<BaseResultDto> ActiveAsync(DiscountDto discount)
         {
-            var item = await _context.Discounts.Include(s => s.Type).FirstOrDefaultAsync(s => s.Id == discount.Id && s.StoreId == discount.StoreId);
-            if (item == null)
+            var item = await _context.Discounts
+                .Include(s => s.Type)
+                .FirstOrDefaultAsync(s => s.Id == discount.Id && !s.Deleted);
+            if (item != null)
             {
                 item.Active = discount.Active;
                 _context.Discounts.Update(item);
@@ -95,12 +98,15 @@ namespace Application.Services.ProductSrvs.DiscountSrv
             return new BaseResultDto(false);
         }
 
-        public async Task<BaseResultDto> DeleteAsync(DiscountDto discount)
+        public async Task<BaseResultDto> DeleteAsync(long id)
         {
-            var item = await _context.Discounts.Include(s => s.Type).FirstOrDefaultAsync(s => s.Id == discount.Id && s.StoreId == discount.StoreId);
+            var item = await _context.Discounts
+                .Include(s => s.Type)
+                .FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
             if (item != null)
             {
                 item.Deleted = true;
+                item.Active = false;
                 _context.Discounts.Update(item);
                 await _context.SaveChangesAsync();
 
@@ -113,7 +119,7 @@ namespace Application.Services.ProductSrvs.DiscountSrv
 
         public async Task<BaseResultDto> FindAsyncDto(long id)
         {
-            var Discount = await _context.Discounts.Include(s => s.Type).Include(s => s.Store).Include(s => s.Category).Include(s => s.Brand).Include(s => s.Product).Include(s => s.Product).FirstOrDefaultAsync(s => s.Id.Equals(id));
+            var Discount = await _context.Discounts.Include(s => s.Type).Include(s => s.Store).Include(s => s.Category).Include(s => s.Brand).Include(s => s.Product).Include(s => s.Product).FirstOrDefaultAsync(s => s.Id.Equals(id) && !s.Deleted);
             if (Discount != null)
             {
                 return new BaseResultDto<DiscountDto>(true, mapper.Map<DiscountDto>(Discount));
@@ -210,10 +216,15 @@ namespace Application.Services.ProductSrvs.DiscountSrv
 
         public DiscountSearchDto Search(DiscountInputDto searchDto)
         {
-            var query = _context.Discounts.Include(s => s.Product).ThenInclude(s => s.Category).Include(s => s.ProductItem).ThenInclude(s => s.Product).ThenInclude(s => s.Category).Include(s => s.DiscountGroup).AsQueryable();
+            var query = _context.Discounts
+                .Include(s => s.Product).ThenInclude(s => s.Category)
+                .Include(s => s.ProductItem).ThenInclude(s => s.Product).ThenInclude(s => s.Category)
+                .Include(s => s.DiscountGroup)
+                .Where(s => !s.Deleted)
+                .AsQueryable();
             if (searchDto.Available == true)
             {
-                query = query.Where(s => s.Deleted == false && s.Active && (s.EndDate == null || (s.EndDate.HasValue && s.EndDate > DateTime.Now)));
+                query = query.Where(s => s.Active && (s.EndDate == null || (s.EndDate.HasValue && s.EndDate > DateTime.Now)));
             }
             if (searchDto.StoreId.HasValue)
             {
@@ -305,10 +316,8 @@ namespace Application.Services.ProductSrvs.DiscountSrv
         private async Task SetStoreMaxDiscountAsync(long storeId)
         {
             var maxDiscount = _context.Discounts.AsTracking().Where(s => s.StoreId == storeId && s.Active && s.Deleted == false && (s.EndDate == null || s.EndDate >= DateTime.Now.Date));
-            if (maxDiscount.Any())
-            {
-                await _storeService.SetMaxDiscountAsync(storeId: storeId, maxDiscount.Max(s => s.Percent));
-            }
+            var percent = await maxDiscount.Select(s => (int?)s.Percent).MaxAsync() ?? 0;
+            await _storeService.SetMaxDiscountAsync(storeId: storeId, maxDiscount: percent);
         }
     }
 }

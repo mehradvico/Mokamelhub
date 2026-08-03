@@ -135,6 +135,13 @@ namespace Application.Services.Order.CartSrv
                     }
                 case Common.Enumerable.CartUpdateEnum.SetOrder:
                     {
+                        if (_currentUser?.CurrentUser?.UserId is not > 0)
+                        {
+                            return new BaseResultDto(
+                                isSuccess: false,
+                                val: "برای ثبت سفارش ابتدا وارد حساب کاربری شوید.");
+                        }
+
                         await UpdateCartAsync(cartUpdate, cart);
                         return await CartOrderAsync(cartUpdate, cart);
                     }
@@ -202,19 +209,29 @@ namespace Application.Services.Order.CartSrv
                 var cartStore = cart.CartStores.FirstOrDefault(s => s.Active);
                 if (cartStore != null)
                 {
-                    foreach (var removedItem in cartStore.CartItems.Where(s => s.ProductItem.SystemActive == false))
-                    {
-                        _context.CartItems.Remove(removedItem);
-                    }
-                    foreach (var item in cartStore.CartItems.Where(c => c.Count > c.ProductItem.Quantity))
+                    foreach (var item in cartStore.CartItems.Where(c =>
+                                 c.ProductItem.SystemActive &&
+                                 c.Count > c.ProductItem.Quantity))
                     {
                         item.Count = item.ProductItem.Quantity;
                         _context.CartItems.Update(item);
                     }
-                    cartStore.BasePrice = cartStore.CartItems.Sum(s => s.ProductItem.BasePrice * s.Count);
-                    cartStore.Price = cartStore.CartItems.Sum(s => s.ProductItem.Price * s.Count);
-                    cartStore.ItemCount = cartStore.CartItems.Sum(s => s.Count);
-                    cartStore.Discount = cartStore.CartItems.Sum(s => (s.ProductItem.BasePrice - s.ProductItem.Price) * s.Count);
+
+                    var removedItems = cartStore.CartItems
+                        .Where(s => !s.ProductItem.SystemActive || s.Count <= 0)
+                        .ToList();
+                    foreach (var removedItem in removedItems)
+                    {
+                        _context.CartItems.Remove(removedItem);
+                        cartStore.CartItems.Remove(removedItem);
+                    }
+                    var activeItems = cartStore.CartItems
+                        .Where(s => s.ProductItem.SystemActive && s.Count > 0)
+                        .ToList();
+                    cartStore.BasePrice = activeItems.Sum(s => s.ProductItem.BasePrice * s.Count);
+                    cartStore.Price = activeItems.Sum(s => s.ProductItem.Price * s.Count);
+                    cartStore.ItemCount = activeItems.Sum(s => s.Count);
+                    cartStore.Discount = activeItems.Sum(s => (s.ProductItem.BasePrice - s.ProductItem.Price) * s.Count);
                     cartStore.PaymentPrice = cartStore.Price + cartStore.DeliveryPrice;
 
 
@@ -222,8 +239,9 @@ namespace Application.Services.Order.CartSrv
                     cart.Price = cartStore.Price;
                     cart.Discount = cartStore.Discount;
                     cart.DeliveryPrice = cartStore.DeliveryPrice;
-                    cart.PaymentPrice = (cart.Price - cart.RebatePrice) + cart.DeliveryPrice;
-                    cart.ItemCount = cart.CartStores.Count();
+                    RefreshRebate(cart);
+                    cart.PaymentPrice = Math.Max(0, (cart.Price - cart.RebatePrice) + cart.DeliveryPrice);
+                    cart.ItemCount = cartStore.ItemCount;
                     _context.Carts.Update(cart);
                     await _context.SaveChangesAsync();
                 }
@@ -294,7 +312,6 @@ namespace Application.Services.Order.CartSrv
                     }
 
                     await _context.SaveChangesAsync();
-                    return new BaseResultDto(isSuccess: true, val: Resource.Notification.Success);
                 }
                 else
                 {
@@ -321,6 +338,47 @@ namespace Application.Services.Order.CartSrv
             await CartRemoveDeliveryAsync(cart);
             await CartSetActiveAsync(cartUpdate, cart);
             return new BaseResultDto<string>(isSuccess: true, val: Resource.Notification.SuccessfullyAddedToCart, cart.UniqueId);
+        }
+
+        private void RefreshRebate(Cart cart)
+        {
+            if (!cart.RebateId.HasValue)
+            {
+                cart.Rebate = null;
+                cart.RebatePrice = 0;
+                return;
+            }
+
+            // SetRebate only sets the FK. During the same request EF does not
+            // automatically populate the navigation property, so load it here
+            // before revalidating the code.
+            if (cart.Rebate == null || cart.Rebate.Id != cart.RebateId.Value)
+            {
+                cart.Rebate = _context.Rebate.FirstOrDefault(s =>
+                    s.Id == cart.RebateId.Value &&
+                    !s.Deleted);
+            }
+
+            if (cart.Rebate == null || string.IsNullOrWhiteSpace(cart.Rebate.CodeValue))
+            {
+                cart.RebateId = null;
+                cart.Rebate = null;
+                cart.RebatePrice = 0;
+                return;
+            }
+
+            var rebateResult = _rebateService.GetRebateByCodeAsync(cart, cart.Rebate.CodeValue);
+            if (!rebateResult.IsSuccess || rebateResult.Data == null)
+            {
+                cart.RebateId = null;
+                cart.Rebate = null;
+                cart.RebatePrice = 0;
+                return;
+            }
+
+            cart.RebatePrice = Math.Min(
+                Math.Max(0, rebateResult.Data.FinalPrice),
+                Math.Max(0, cart.Price + cart.DeliveryPrice));
         }
 
 
@@ -351,6 +409,18 @@ namespace Application.Services.Order.CartSrv
             {
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.Unsuccess);
             }
+
+            if (!cart.UserId.HasValue ||
+                !await _context.Addresses.AnyAsync(s =>
+                    s.Id == cartUpdate.AddressId.Value &&
+                    s.UserId == cart.UserId.Value &&
+                    !s.Deleted))
+            {
+                return new BaseResultDto(
+                    isSuccess: false,
+                    val: "آدرس انتخاب‌شده معتبر نیست.");
+            }
+
             cart.AddressId = cartUpdate.AddressId;
             cart.Address = null;
             _context.Carts.Update(cart);
@@ -388,12 +458,15 @@ namespace Application.Services.Order.CartSrv
         }
         private async Task<BaseResultDto> CartSetRebateAsync(CartUpdateDto cartUpdate, Cart cart)
         {
-            if (string.IsNullOrEmpty(cartUpdate.RebateCode))
+            var rebateCode = string.IsNullOrWhiteSpace(cartUpdate.RebateCode)
+                ? null
+                : string.Concat(cartUpdate.RebateCode.Where(c => !char.IsWhiteSpace(c))).ToLowerInvariant();
+            if (string.IsNullOrWhiteSpace(rebateCode))
             {
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.Unsuccess);
             }
-            var rebate = _rebateService.GetRebateByCodeAsync(cart, cartUpdate.RebateCode);
-            if (rebate.IsSuccess)
+            var rebate = _rebateService.GetRebateByCodeAsync(cart, rebateCode);
+            if (rebate.IsSuccess && rebate.Data != null)
             {
                 cart.Rebate = null;
                 cart.RebateId = rebate.Data.Id;
@@ -523,6 +596,14 @@ namespace Application.Services.Order.CartSrv
                 {
                     return new BaseResultDto(isSuccess: false, val: Resource.Notification.CartIsEmpty);
                 }
+                if (!cart.AddressId.HasValue)
+                {
+                    return new BaseResultDto(isSuccess: false, val: "لطفاً آدرس تحویل را انتخاب کنید.");
+                }
+                if (!cartStore.DeliveryId.HasValue)
+                {
+                    return new BaseResultDto(isSuccess: false, val: "لطفاً روش ارسال را انتخاب کنید.");
+                }
                 var productOrderDto = mapper.Map<ProductOrderDto>(cart);
 
 
@@ -543,9 +624,28 @@ namespace Application.Services.Order.CartSrv
                 {
                     productOrderDto.PaymentTypeId = orderPaymentTypeOnline.Id;
 
-                    if (productOrderDto.PaymentPrice > 0 && cart.MerchantId == null)
+                    if (productOrderDto.PaymentPrice < 10000)
+                    {
+                        return new BaseResultDto(
+                            isSuccess: false,
+                            val: string.Format(Resource.Pattern.AmountsLessT1CannotPaid, 10000));
+                    }
+
+                    if (cart.MerchantId == null)
                     {
                         return new BaseResultDto(isSuccess: false, val: Resource.Notification.PleaseSelectTheMerchant);
+                    }
+
+                    var merchantIsAvailable = await _context.Merchants.AnyAsync(s =>
+                        s.Id == cart.MerchantId.Value &&
+                        s.Active &&
+                        (s.BankId == (long)MerchantEnum.zarinpal ||
+                         s.BankId == (long)MerchantEnum.snapppay));
+                    if (!merchantIsAvailable)
+                    {
+                        return new BaseResultDto(
+                            isSuccess: false,
+                            val: "روش پرداخت انتخاب‌شده در دسترس نیست.");
                     }
                 }
 

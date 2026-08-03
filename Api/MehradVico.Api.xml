@@ -871,7 +871,7 @@
             ویرایش آیتم
             </summary>
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.DiscountController.Delete(Application.Services.ProductSrvs.DiscountSrv.Dto.DiscountDto)">
+        <member name="M:Api.Areas.Admin.Controllers.DiscountController.Delete(System.Int64)">
              <summary>
              حذف آیتم
              </summary>

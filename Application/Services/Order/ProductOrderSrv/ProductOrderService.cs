@@ -52,9 +52,23 @@ namespace Application.Services.Order.ProductOrderSrv
             this._userProductService = userProductService;
             this._codeService = codeService;
         }
-        public async Task<BaseResultDto> FindAsyncVDto(string id)
+        public async Task<BaseResultDto> FindAsyncVDto(string id, long? userId = null)
         {
-            var item = await _context.ProductOrders.Include(s => s.User).Include(s => s.Address).Include(s => s.ProductOrderState).Include(s => s.ProductOrderStatus).Include(s => s.PaymentType).Include(s => s.Payments).Include(s => s.ProductOrderStores).ThenInclude(s => s.ProductOrderItems).FirstOrDefaultAsync(s => s.Id == id);
+            var query = _context.ProductOrders
+                .Include(s => s.User)
+                .Include(s => s.Address)
+                .Include(s => s.ProductOrderState)
+                .Include(s => s.ProductOrderStatus)
+                .Include(s => s.PaymentType)
+                .Include(s => s.Payments)
+                .Include(s => s.ProductOrderStores)
+                    .ThenInclude(s => s.ProductOrderItems)
+                .Where(s => s.Id == id && !s.Deleted);
+
+            if (userId.HasValue)
+                query = query.Where(s => s.UserId == userId.Value);
+
+            var item = await query.FirstOrDefaultAsync();
             if (item != null)
             {
                 return new BaseResultDto<ProductOrderVDto>(true, data: mapper.Map<ProductOrderVDto>(item));
@@ -117,13 +131,15 @@ namespace Application.Services.Order.ProductOrderSrv
             }
             if (!string.IsNullOrEmpty(baseSearchDto.Q))
             {
-                query = query.Where(s => s.User.FirstName.Contains(baseSearchDto.Q) ||
-                                         s.User.LastName.Contains(baseSearchDto.Q) ||
-                                         s.User.Mobile.Contains(baseSearchDto.Q) ||
+                var searchTerm = NormalizeOrderSearchTerm(baseSearchDto.Q);
+                query = query.Where(s => s.Id.Contains(searchTerm) ||
+                                         s.User.FirstName.Contains(searchTerm) ||
+                                         s.User.LastName.Contains(searchTerm) ||
+                                         s.User.Mobile.Contains(searchTerm) ||
                                          _context.Payments.Any(p =>
                                              (p.ProductOrderId == s.Id || p.CallBackId == s.Id) &&
                                              p.GatewayTransactionId != null &&
-                                             p.GatewayTransactionId.Contains(baseSearchDto.Q)));
+                                             p.GatewayTransactionId.Contains(searchTerm)));
             }
             if (!string.IsNullOrEmpty(baseSearchDto.TrackingCode))
             {
@@ -185,6 +201,44 @@ namespace Application.Services.Order.ProductOrderSrv
             }
 
             return new ProductOrderSearchDto(baseSearchDto, query, mapper);
+        }
+
+        private static string NormalizeOrderSearchTerm(string value)
+        {
+            var normalized = (value ?? string.Empty).Trim().TrimStart('#').Trim();
+            if (normalized.Length == 0)
+                return normalized;
+
+            var characters = normalized.ToCharArray();
+            for (var index = 0; index < characters.Length; index++)
+            {
+                characters[index] = characters[index] switch
+                {
+                    '۰' => '0',
+                    '۱' => '1',
+                    '۲' => '2',
+                    '۳' => '3',
+                    '۴' => '4',
+                    '۵' => '5',
+                    '۶' => '6',
+                    '۷' => '7',
+                    '۸' => '8',
+                    '۹' => '9',
+                    '٠' => '0',
+                    '١' => '1',
+                    '٢' => '2',
+                    '٣' => '3',
+                    '٤' => '4',
+                    '٥' => '5',
+                    '٦' => '6',
+                    '٧' => '7',
+                    '٨' => '8',
+                    '٩' => '9',
+                    _ => characters[index]
+                };
+            }
+
+            return new string(characters);
         }
 
         public async Task<BaseResultDto> ProductPaymentCallback(string productOrderId)

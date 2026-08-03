@@ -104,7 +104,7 @@ namespace Application.Services.Order.RebateSrv
         {
             DateTime justNow = DateTime.Now.Date;
             double basePrice = cart.Price;
-            var rebate = GetRebateByCodeValue(code);
+            var rebate = GetRebateByCodeValue(code?.Trim());
 
             var commonCheck = ValidateRebateCommon(
                 rebate: rebate,
@@ -119,12 +119,23 @@ namespace Application.Services.Order.RebateSrv
 
             if (rebate.ProductId.HasValue)
             {
-                var cartItem = _context.CartItems.FirstOrDefault(s =>
-                    s.CartStore.CartId == cart.Id && s.ProductItem.ProductId == rebate.ProductId);
+                var matchingCartItems = _context.CartItems
+                    .Where(s =>
+                        s.CartStore.CartId == cart.Id &&
+                        s.CartStore.Active &&
+                        s.Count > 0 &&
+                        s.ProductItem.SystemActive &&
+                        s.ProductItem.ProductId == rebate.ProductId)
+                    .Select(s => new
+                    {
+                        s.Count,
+                        s.ProductItem.Price
+                    })
+                    .ToList();
 
-                if (cartItem != null)
+                if (matchingCartItems.Count > 0)
                 {
-                    basePrice = cartItem.ProductItem.Price;
+                    basePrice = matchingCartItems.Sum(s => s.Price * s.Count);
                 }
                 else
                 {
@@ -133,9 +144,10 @@ namespace Application.Services.Order.RebateSrv
             }
 
             var rebateDto = mapper.Map<RebateVDto>(rebate);
-            rebateDto.FinalPrice = rebateDto.IsPriceRebate
+            var calculatedRebate = rebateDto.IsPriceRebate
                 ? rebateDto.PriceValue
                 : Math.Round(basePrice * (rebateDto.PriceValue / 100));
+            rebateDto.FinalPrice = Math.Min(Math.Max(0, calculatedRebate), Math.Max(0, basePrice));
 
             return new BaseResultDto<RebateVDto>(true, Resource.Notification.Success, rebateDto);
         }
@@ -148,6 +160,10 @@ namespace Application.Services.Order.RebateSrv
         }
         Rebate GetRebateByCodeValue(string CodeValue)
         {
+            if (string.IsNullOrWhiteSpace(CodeValue))
+                return null;
+
+            CodeValue = CodeValue.Trim().ToLowerInvariant();
             return _context.Rebate.FirstOrDefault(x => x.Deleted == false && x.CodeValue == CodeValue);
         }
         public void IncreaseUseCount(ProductOrder order)
@@ -187,7 +203,7 @@ namespace Application.Services.Order.RebateSrv
             {
                 return new BaseResultDto<RebateVDto>(false, Resource.Notification.TheLimitUsesDiscountCodeReached, null);
             }
-            else if (rebate.IsPriceRebate && rebate.MinCartPrice > basePrice)
+            else if (rebate.MinCartPrice > basePrice)
             {
                 return new BaseResultDto<RebateVDto>(
                     false,
