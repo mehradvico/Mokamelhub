@@ -79,6 +79,7 @@ namespace Api.Areas.Admin.Controllers
         /// </summary>
         ///
         [HttpDelete]
+        [HttpPost("delete")]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> Delete([FromQuery] long id)
         {

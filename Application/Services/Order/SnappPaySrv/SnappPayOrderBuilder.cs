@@ -25,6 +25,7 @@ namespace Application.Services.Order.SnappPaySrv
         {
             var query = _context.ProductOrders
                 .Include(x => x.User)
+                .Include(x => x.Rebate)
                 .Include(x => x.ProductOrderStores)
                     .ThenInclude(x => x.ProductOrderItems)
                         .ThenInclude(x => x.ProductItem)
@@ -125,8 +126,37 @@ namespace Application.Services.Order.SnappPaySrv
             order.Price = activeStores.Sum(x => x.Price);
             order.DiscountPrice = Math.Max(0, order.BasePrice - order.Price);
             order.DeliveryPrice = activeStores.Sum(x => x.DeliveryPrice);
-            order.RebatePrice = Math.Min(Math.Max(0, order.RebatePrice), order.Price + order.DeliveryPrice);
+            order.RebatePrice = CalculateRebatePrice(order, activeStores);
             order.PaymentPrice = Math.Max(0, order.Price + order.DeliveryPrice - order.RebatePrice);
+        }
+
+        private static double CalculateRebatePrice(
+            ProductOrder order,
+            System.Collections.Generic.IReadOnlyCollection<ProductOrderStore> activeStores)
+        {
+            // A cart-level voucher must be recalculated after every SnappPay update.
+            // Product discounts are already reflected in ProductOrderItem.Price and
+            // must not be added to SnappPay's discountAmount again.
+            if (order.Rebate == null)
+                return Math.Min(Math.Max(0, order.RebatePrice), Math.Max(0, order.Price));
+
+            var rebateBasePrice = order.Price;
+            if (order.Rebate.ProductId.HasValue)
+            {
+                var productId = order.Rebate.ProductId.Value;
+                rebateBasePrice = activeStores
+                    .SelectMany(store => store.ProductOrderItems ?? Enumerable.Empty<ProductOrderItem>())
+                    .Where(item => !item.Deleted &&
+                                   item.Count > 0 &&
+                                   item.ProductItem?.ProductId == productId)
+                    .Sum(item => item.Price * item.Count);
+            }
+
+            var calculatedRebate = order.Rebate.IsPriceRebate
+                ? order.Rebate.PriceValue
+                : Math.Round(rebateBasePrice * (order.Rebate.PriceValue / 100));
+
+            return Math.Min(Math.Max(0, calculatedRebate), Math.Max(0, rebateBasePrice));
         }
 
         private static long ToRial(double toman)

@@ -60,8 +60,13 @@ namespace Application.Services.Order.SnappPaySrv.Dto
     {
         public bool Eligible { get; set; }
 
-        [JsonPropertyName("title_message")]
+        [JsonPropertyName("title")]
         public string Title { get; set; }
+
+        // Older staging responses used title_message. Keep the alias so both
+        // SnappPay response versions are accepted without using static copy.
+        [JsonPropertyName("title_message")]
+        public string TitleMessage { get; set; }
 
         [JsonPropertyName("description")]
         public string Description { get; set; }

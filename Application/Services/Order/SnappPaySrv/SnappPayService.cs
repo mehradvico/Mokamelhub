@@ -50,10 +50,20 @@ namespace Application.Services.Order.SnappPaySrv
             }
 
             var result = await _client.GetEligibilityAsync(amountRial, paymentMethodTypes);
-            return result.IsSuccess
-                ? new BaseResultDto<SnappPayEligibilityResponse>(true, result.Data)
-                : Fail<SnappPayEligibilityResponse>(result.ErrorMessage, result.ErrorCode ?? 0);
+            if (!result.IsSuccess)
+                return Fail<SnappPayEligibilityResponse>(result.ErrorMessage, result.ErrorCode ?? 0);
+
+            if (result.Data != null)
+            {
+                result.Data.Title = FirstNonEmpty(result.Data.Title, result.Data.TitleMessage);
+                result.Data.Description = result.Data.Description?.Trim();
+            }
+
+            return new BaseResultDto<SnappPayEligibilityResponse>(true, result.Data);
         }
+
+        private static string FirstNonEmpty(params string[] values) =>
+            values?.FirstOrDefault(value => !string.IsNullOrWhiteSpace(value))?.Trim();
 
         public async Task<BaseResultDto<SnappPayOrderOperationResultDto>> GetOrderStatusAsync(string orderId, bool refresh)
         {
