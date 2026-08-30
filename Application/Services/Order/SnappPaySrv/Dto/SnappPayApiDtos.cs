@@ -99,7 +99,10 @@ namespace Application.Services.Order.SnappPaySrv.Dto
         public int Count { get; set; }
         public long Id { get; set; }
         public string Name { get; set; }
-        public int CommissionType { get; set; }
+
+        // SnappPay's own Postman collection sends this as a quoted string
+        // (unlike amount/count/id), so it must not be serialized as a JSON number.
+        public string CommissionType { get; set; }
     }
 
     public class SnappPayCartRequest

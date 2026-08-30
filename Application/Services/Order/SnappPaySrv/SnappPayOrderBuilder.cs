@@ -45,13 +45,20 @@ namespace Application.Services.Order.SnappPaySrv
                 throw new ArgumentNullException(nameof(order));
 
             var request = new SnappPayOrderRequest();
-            foreach (var store in order.ProductOrderStores?.Where(x => !x.Deleted) ?? Enumerable.Empty<ProductOrderStore>())
+            var activeStores = order.ProductOrderStores?.Where(x => !x.Deleted).ToList()
+                ?? new System.Collections.Generic.List<ProductOrderStore>();
+
+            foreach (var store in activeStores)
             {
                 var shippingAmountRial = ToRial(store.DeliveryPrice);
                 var cart = new SnappPayCartRequest
                 {
                     CartId = store.Id,
-                    IsShipmentIncluded = shippingAmountRial == 0,
+                    // TotalAmount below always adds ShippingAmount/TaxAmount into the
+                    // cart total, so both "included" flags must stay true regardless
+                    // of the shipping amount's value (matches SnappPay's own sample
+                    // request in tmp/snapp_docs/Postman-Collection).
+                    IsShipmentIncluded = true,
                     IsTaxIncluded = true,
                     ShippingAmount = shippingAmountRial,
                     TaxAmount = 0
@@ -68,7 +75,7 @@ namespace Application.Services.Order.SnappPaySrv
                         Count = item.Count,
                         Name = Limit(product?.Name ?? item.Description ?? $"محصول {item.ProductItemId}", 255),
                         Category = Limit(product?.Category?.Name ?? "مکمل", 255),
-                        CommissionType = _options.CommissionType > 0 ? _options.CommissionType : 100
+                        CommissionType = (_options.CommissionType > 0 ? _options.CommissionType : 100).ToString()
                     });
 
                 }
@@ -84,7 +91,11 @@ namespace Application.Services.Order.SnappPaySrv
                 throw new InvalidOperationException("سفارش هیچ آیتم فعالی برای ارسال به اسنپ‌پی ندارد.");
 
             var totalRial = request.CartList.Sum(x => x.TotalAmount);
-            request.DiscountAmount = ToRial(Math.Max(0, order.RebatePrice));
+            // Recalculate the voucher from the current items for both the initial
+            // payment-token request and every later update request. This prevents
+            // a stale persisted RebatePrice from being sent as discountAmount.
+            var currentRebatePrice = CalculateRebatePrice(order, activeStores);
+            request.DiscountAmount = ToRial(currentRebatePrice);
             request.DiscountAmount = Math.Min(request.DiscountAmount, totalRial);
 
             var afterDiscount = totalRial - request.DiscountAmount;

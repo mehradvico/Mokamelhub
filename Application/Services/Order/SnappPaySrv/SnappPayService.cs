@@ -81,6 +81,14 @@ namespace Application.Services.Order.SnappPaySrv
                     return Fail<SnappPayOrderOperationResultDto>(status.ErrorMessage, status.ErrorCode ?? 0);
                 }
 
+                if (status.Data == null)
+                {
+                    const string message = "پاسخ استعلام وضعیت اسنپ‌پی ناقص است.";
+                    payment.GatewayLastError = message;
+                    await _context.SaveChangesAsync();
+                    return Fail<SnappPayOrderOperationResultDto>(message);
+                }
+
                 if (payment.GatewayAmountRial.HasValue && status.Data.Amount != payment.GatewayAmountRial.Value)
                     return Fail<SnappPayOrderOperationResultDto>("مبلغ استعلام اسنپ‌پی با مبلغ ذخیره‌شده سفارش تطابق ندارد.");
 
@@ -106,7 +114,7 @@ namespace Application.Services.Order.SnappPaySrv
                     else
                     {
                         var finalStatus = await _client.GetPaymentStatusAsync(payment.Token);
-                        if (finalStatus.IsSuccess)
+                        if (finalStatus.IsSuccess && finalStatus.Data != null)
                             currentStatus = NormalizeStatus(finalStatus.Data.Status);
                     }
                 }
@@ -276,6 +284,9 @@ namespace Application.Services.Order.SnappPaySrv
             var status = await _client.GetPaymentStatusAsync(payment.Token);
             if (!status.IsSuccess)
                 return Fail<SnappPayOrderOperationResultDto>(status.ErrorMessage, status.ErrorCode ?? 0);
+
+            if (status.Data == null)
+                return Fail<SnappPayOrderOperationResultDto>("پاسخ استعلام وضعیت اسنپ‌پی ناقص است.");
 
             if (payment.GatewayAmountRial.HasValue && status.Data.Amount != payment.GatewayAmountRial.Value)
                 return Fail<SnappPayOrderOperationResultDto>("مبلغ استعلام اسنپ‌پی با سفارش تطابق ندارد.");
