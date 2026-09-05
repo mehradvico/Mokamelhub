@@ -101,10 +101,41 @@ namespace Application.Services.MerchantSrv
 
             var res = await gateway.CallbackAsync(payment, merchant, _httpContextAccessor.HttpContext.Request);
 
+            ApplyGatewayResult(payment, res);
+            await _context.SaveChangesAsync();
+
+            return new BaseResultDto(res.IsSuccess, res.ErrorMessage);
+        }
+
+        public async Task<BaseResultDto> RecheckAsync(Payment payment)
+        {
+            var merchant = await _context.Merchants.Include(s => s.Bank).FirstOrDefaultAsync(s => s.Id == payment.MerchantId);
+            if (merchant == null)
+            {
+                return new BaseResultDto(false, Resource.Notification.Unsuccess);
+            }
+
+            var provider = (MerchantEnum)merchant.BankId;
+            if (provider != MerchantEnum.zarinpal && provider != MerchantEnum.snapppay)
+            {
+                return new BaseResultDto(false, "روش پرداخت انتخاب‌شده فعال نیست.");
+            }
+            var gateway = _gatewayResolver.Resolve(provider);
+
+            var res = await gateway.VerifyPendingAsync(payment, merchant);
+
+            ApplyGatewayResult(payment, res);
+            await _context.SaveChangesAsync();
+
+            return new BaseResultDto(res.IsSuccess, res.ErrorMessage);
+        }
+
+        private void ApplyGatewayResult(Payment payment, Application.Services.Order.PaymentGatewaySrv.Dto.GatewayCallbackResultDto res)
+        {
             if (res.IsFinal)
                 payment.IsSuccess = res.IsSuccess;
-            payment.RefNumber = res.RefNumber;
-            payment.Description = res.Description ?? res.ErrorMessage;
+            payment.RefNumber = res.RefNumber ?? payment.RefNumber;
+            payment.Description = res.Description ?? res.ErrorMessage ?? payment.Description;
             payment.GatewayLastError = res.IsSuccess ? null : res.ErrorMessage;
             payment.GatewayStatus = string.IsNullOrWhiteSpace(res.GatewayStatus) ? payment.GatewayStatus : res.GatewayStatus;
             payment.GatewayAmountRial = res.GatewayAmountRial ?? payment.GatewayAmountRial;
@@ -112,9 +143,6 @@ namespace Application.Services.MerchantSrv
             payment.GatewaySettledAt = res.SettledAt ?? payment.GatewaySettledAt;
 
             _context.Payments.Update(payment);
-            await _context.SaveChangesAsync();
-
-            return new BaseResultDto(res.IsSuccess, res.ErrorMessage);
         }
     }
 }

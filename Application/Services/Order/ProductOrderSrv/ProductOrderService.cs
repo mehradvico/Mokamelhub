@@ -61,6 +61,8 @@ namespace Application.Services.Order.ProductOrderSrv
                 .Include(s => s.ProductOrderStatus)
                 .Include(s => s.PaymentType)
                 .Include(s => s.Payments)
+                    .ThenInclude(s => s.Merchant)
+                        .ThenInclude(s => s.Bank)
                 .Include(s => s.ProductOrderStores)
                     .ThenInclude(s => s.ProductOrderItems)
                 .Where(s => s.Id == id && !s.Deleted);

@@ -173,67 +173,7 @@ namespace Application.Services.Order.PaymentGatewaySrv.Gateways
                     };
                 }
 
-                var verifyData = new
-                {
-                    merchant_id = merchant.MerchantNo,
-                    authority = authority,
-                    amount = Convert.ToInt64(payment.Amount),
-                    currency = "IRT"
-                };
-
-                var content = new StringContent(
-                    JsonSerializer.Serialize(verifyData),
-                    Encoding.UTF8,
-                    "application/json");
-
-                var response = await _httpClient.PostAsync(ZarinPalVerificationUrl, content);
-                var result = await response.Content.ReadAsStringAsync();
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    return new GatewayCallbackResultDto
-                    {
-                        IsSuccess = false,
-                        Token = authority,
-                        ErrorMessage = $"خطا در ارتباط با زرین‌پال برای verify: {response.StatusCode} - {result}"
-                    };
-                }
-
-                var verifyResponse = JsonSerializer.Deserialize<ZarinPalVerificationResponse>(
-                    result,
-                    new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true
-                    });
-
-                if (verifyResponse?.data == null)
-                {
-                    return new GatewayCallbackResultDto
-                    {
-                        IsSuccess = false,
-                        Token = authority,
-                        ErrorMessage = "پاسخ verify زرین‌پال نامعتبر است."
-                    };
-                }
-
-                if (verifyResponse.data.code == 100 || verifyResponse.data.code == 101)
-                {
-                    return new GatewayCallbackResultDto
-                    {
-                        IsSuccess = true,
-                        RefNumber = verifyResponse.data.ref_id?.ToString(),
-                        Token = authority,
-                        Description = $"{verifyResponse.data.code}--{verifyResponse.data.ref_id}"
-                    };
-                }
-
-                return new GatewayCallbackResultDto
-                {
-                    IsSuccess = false,
-                    Token = authority,
-                    Description = verifyResponse.data.code.ToString(),
-                    ErrorMessage = Resource.Notification.Unsuccess
-                };
+                return await VerifyByAuthorityAsync(authority, payment.Amount, merchant);
             }
             catch (Exception ex)
             {
@@ -243,6 +183,108 @@ namespace Application.Services.Order.PaymentGatewaySrv.Gateways
                     ErrorMessage = ex.Message
                 };
             }
+        }
+
+        public async Task<GatewayCallbackResultDto> VerifyPendingAsync(Payment payment, Merchant merchant)
+        {
+            try
+            {
+                if (payment == null || merchant == null || string.IsNullOrWhiteSpace(merchant.MerchantNo))
+                {
+                    return new GatewayCallbackResultDto
+                    {
+                        IsSuccess = false,
+                        IsFinal = false,
+                        ErrorMessage = Resource.Notification.InvalidData
+                    };
+                }
+
+                if (string.IsNullOrWhiteSpace(payment.Token))
+                {
+                    return new GatewayCallbackResultDto
+                    {
+                        IsSuccess = false,
+                        IsFinal = false,
+                        ErrorMessage = "Authority این تراکنش ثبت نشده است."
+                    };
+                }
+
+                return await VerifyByAuthorityAsync(payment.Token, payment.Amount, merchant);
+            }
+            catch (Exception ex)
+            {
+                return new GatewayCallbackResultDto
+                {
+                    IsSuccess = false,
+                    IsFinal = false,
+                    ErrorMessage = ex.Message
+                };
+            }
+        }
+
+        private async Task<GatewayCallbackResultDto> VerifyByAuthorityAsync(string authority, double amount, Merchant merchant)
+        {
+            var verifyData = new
+            {
+                merchant_id = merchant.MerchantNo,
+                authority = authority,
+                amount = Convert.ToInt64(amount),
+                currency = "IRT"
+            };
+
+            var content = new StringContent(
+                JsonSerializer.Serialize(verifyData),
+                Encoding.UTF8,
+                "application/json");
+
+            var response = await _httpClient.PostAsync(ZarinPalVerificationUrl, content);
+            var result = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return new GatewayCallbackResultDto
+                {
+                    IsSuccess = false,
+                    Token = authority,
+                    ErrorMessage = $"خطا در ارتباط با زرین‌پال برای verify: {response.StatusCode} - {result}"
+                };
+            }
+
+            var verifyResponse = JsonSerializer.Deserialize<ZarinPalVerificationResponse>(
+                result,
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+            if (verifyResponse?.data == null)
+            {
+                return new GatewayCallbackResultDto
+                {
+                    IsSuccess = false,
+                    Token = authority,
+                    ErrorMessage = "پاسخ verify زرین‌پال نامعتبر است."
+                };
+            }
+
+            if (verifyResponse.data.code == 100 || verifyResponse.data.code == 101)
+            {
+                return new GatewayCallbackResultDto
+                {
+                    IsSuccess = true,
+                    RefNumber = verifyResponse.data.ref_id?.ToString(),
+                    Token = authority,
+                    Description = $"{verifyResponse.data.code}--{verifyResponse.data.ref_id}"
+                };
+            }
+
+            return new GatewayCallbackResultDto
+            {
+                IsSuccess = false,
+                Token = authority,
+                Description = verifyResponse.data.code.ToString(),
+                ErrorMessage = Resource.Notification.Unsuccess
+            };
         }
 
         private static bool IsValidCallbackUrl(string callbackUrl, long? paymentId)

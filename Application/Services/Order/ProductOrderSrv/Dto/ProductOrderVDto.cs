@@ -35,6 +35,8 @@ namespace Application.Services.Order.ProductOrderSrv.Dto
         public DateTime? HasCancelRequestDate { get; set; }
         public string SnappPayTransactionId { get; set; }
         public string SnappPayStatus { get; set; }
+        public long? PaymentId { get; set; }
+        public string PaymentBankLabel { get; set; }
         public RebateVDto Rebate { get; set; }
         public UserVDto User { get; set; }
         public AddressVDto Address { get; set; }

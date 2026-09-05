@@ -115,24 +115,9 @@ namespace Application.Services.Order.PaymentSrv
 
                 if (callback.IsSuccess)
                 {
-                    if (payment.Type.Label == PaymentTypeEnum.PaymentType_ProductOrder.ToString())
-                    {
-                        if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.ProductOrder.ToString())
-                        {
-                            var productPaymentCallback = await _productOrderService.ProductPaymentCallback(payment.ProductOrderId);
-
-                            if (!productPaymentCallback.IsSuccess)
-                            {
-                                return new BaseResultDto<PaymentDto>(
-                                    isSuccess: false,
-                                    val: Resource.Notification.Unsuccess,
-                                    null);
-                            }
-                        }
-                    }
-                }
-                else
-                {
+                    var fulfillResult = await FulfillProductOrderIfNeeded(payment);
+                    if (fulfillResult != null)
+                        return fulfillResult;
                 }
 
                 return new BaseResultDto<PaymentDto>(
@@ -146,6 +131,72 @@ namespace Application.Services.Order.PaymentSrv
                     val: ex.Message,
                     null);
             }
+        }
+
+        public async Task<BaseResultDto<PaymentDto>> RecheckPayment(long paymentId)
+        {
+            try
+            {
+                var payment = await FindAsync(paymentId);
+
+                if (payment == null)
+                {
+                    return new BaseResultDto<PaymentDto>(
+                        isSuccess: false,
+                        val: Resource.Notification.Unsuccess,
+                        null);
+                }
+
+                if (payment.IsSuccess == true)
+                {
+                    return new BaseResultDto<PaymentDto>(
+                        isSuccess: true,
+                        val: "این تراکنش قبلاً موفق ثبت شده است.",
+                        data: mapper.Map<PaymentDto>(payment));
+                }
+
+                var recheck = await _merchantService.RecheckAsync(payment);
+
+                if (recheck.IsSuccess)
+                {
+                    var fulfillResult = await FulfillProductOrderIfNeeded(payment);
+                    if (fulfillResult != null)
+                        return fulfillResult;
+                }
+
+                return new BaseResultDto<PaymentDto>(
+                    isSuccess: recheck.IsSuccess,
+                    val: recheck.IsSuccess ? null : recheck.Messages?.FirstOrDefault()?.Item1,
+                    data: mapper.Map<PaymentDto>(payment));
+            }
+            catch (Exception ex)
+            {
+                return new BaseResultDto<PaymentDto>(
+                    isSuccess: false,
+                    val: ex.Message,
+                    null);
+            }
+        }
+
+        private async Task<BaseResultDto<PaymentDto>> FulfillProductOrderIfNeeded(Payment payment)
+        {
+            if (payment.Type.Label != PaymentTypeEnum.PaymentType_ProductOrder.ToString())
+                return null;
+
+            if (payment.CallBackTypeLabel != PaymentCallbackTypeEnum.ProductOrder.ToString())
+                return null;
+
+            var productPaymentCallback = await _productOrderService.ProductPaymentCallback(payment.ProductOrderId);
+
+            if (!productPaymentCallback.IsSuccess)
+            {
+                return new BaseResultDto<PaymentDto>(
+                    isSuccess: false,
+                    val: Resource.Notification.Unsuccess,
+                    null);
+            }
+
+            return null;
         }
         public BaseSearchDto<PaymentVDto> Search(PaymentInputDto baseSearchDto)
         {

@@ -335,6 +335,14 @@ namespace Application.Maping
                     .Where(p => p.GatewayTransactionId != null)
                     .OrderByDescending(p => p.Id)
                     .Select(p => p.GatewayStatus)
+                    .FirstOrDefault()))
+                .ForMember(x => x.PaymentId, o => o.MapFrom(m => m.Payments
+                    .OrderByDescending(p => p.Id)
+                    .Select(p => (long?)p.Id)
+                    .FirstOrDefault()))
+                .ForMember(x => x.PaymentBankLabel, o => o.MapFrom(m => m.Payments
+                    .OrderByDescending(p => p.Id)
+                    .Select(p => p.Merchant != null && p.Merchant.Bank != null ? p.Merchant.Bank.Label : null)
                     .FirstOrDefault()));
             CreateMap<ProductOrderStore, ProductOrderStoreDto>().ReverseMap();
             CreateMap<ProductOrderStore, ProductOrderStoreVDto>();

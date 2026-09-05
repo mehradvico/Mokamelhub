@@ -175,6 +175,19 @@ namespace Application.Services.Order.PaymentGatewaySrv.Gateways
             return CallbackFailure(settle.ErrorMessage ?? finalStatus.ErrorMessage, false, "VERIFY");
         }
 
+        public Task<GatewayCallbackResultDto> VerifyPendingAsync(Payment payment, Merchant merchant)
+        {
+            // SnappPay already has a dedicated reconciliation flow (status/update/cancel)
+            // exposed through SnappPayService/SnappPayController — reuse that instead of
+            // duplicating the VERIFY/SETTLE state machine here.
+            return Task.FromResult(new GatewayCallbackResultDto
+            {
+                IsSuccess = false,
+                IsFinal = false,
+                ErrorMessage = "برای اسنپ‌پی از عملیات «استعلام وضعیت» در همان بخش سفارش استفاده کنید."
+            });
+        }
+
         private static GatewayStartResultDto Failure(string message) => new()
         {
             IsSuccess = false,
