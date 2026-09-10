@@ -9,6 +9,7 @@ namespace Application.Services.Accounting.TicketItemSrv.Iface
     public interface ITicketItemService : ICommonSrv<TicketItem, TicketItemDto>
     {
         TicketItemSearchDto Search(TicketItemInputDto baseSearchDto);
+        Task<TicketItemSearchDto> SearchForCurrentUser(TicketItemInputDto baseSearchDto);
         Task<BaseResultDto> InsertAdminAsyncDto(TicketItemDto dto);
         Task<BaseResultDto> InsertUserAsyncDto(TicketItemDto dto);
     }

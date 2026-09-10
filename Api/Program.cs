@@ -4,6 +4,7 @@ using Api.Swagger;
 using Application.Configures;
 using Application.Services.Accounting.UserTokenSrv.Iface;
 using Hangfire;
+using Hangfire.Dashboard;
 using Hangfire.SqlServer;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
@@ -41,7 +42,7 @@ builder.Services.AddScoped<IControllerActionDiscoveryService, ControllerActionDi
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAnyOrigin", policy =>
+    options.AddPolicy("AppCorsPolicy", policy =>
     {
         policy
             .WithOrigins(
@@ -188,6 +189,35 @@ builder.Services.AddHangfireServer();
 
 var app = builder.Build();
 
+// Defense in depth: individual services already catch their own exceptions and
+// return ex.Message inside a BaseResultDto (a separate, much larger cleanup on
+// its own). This only covers whatever slips past that — e.g. an unhandled
+// exception thrown directly in a controller/middleware — so it never reaches the
+// client as a raw stack trace outside Development.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler(errorApp =>
+    {
+        errorApp.Run(async context =>
+        {
+            var exceptionFeature = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerPathFeature>();
+            if (exceptionFeature?.Error != null)
+            {
+                context.RequestServices.GetRequiredService<ILogger<Program>>()
+                    .LogError(exceptionFeature.Error, "Unhandled exception on {Path}", exceptionFeature.Path);
+            }
+
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(
+                System.Text.Json.JsonSerializer.Serialize(
+                    new Application.Common.Dto.Result.BaseResultDto(
+                        isSuccess: false,
+                        val: Resource.Notification.Unsuccess)));
+        });
+    });
+}
+
 app.UseRequestLocalization();
 
 app.UseStaticFiles();
@@ -196,7 +226,7 @@ app.UseHttpsRedirection();
 
 app.UseRouting();
 
-app.UseCors("AllowAnyOrigin");
+app.UseCors("AppCorsPolicy");
 
 app.UseAuthentication();
 
@@ -204,16 +234,19 @@ app.UseAuthorization();
 
 app.UseOutputCache();
 
-app.UseSwagger();
-
-app.UseSwaggerUI(c =>
+if (app.Environment.IsDevelopment())
 {
-    c.SwaggerEndpoint("/swagger/v2/swagger.json", "v2");
-    c.DefaultModelsExpandDepth(-1);
-    c.RoutePrefix = "swagger";
-});
+    app.UseSwagger();
 
-app.MapGet("/", () => Results.Redirect("/swagger"));
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v2/swagger.json", "v2");
+        c.DefaultModelsExpandDepth(-1);
+        c.RoutePrefix = "swagger";
+    });
+
+    app.MapGet("/", () => Results.Redirect("/swagger"));
+}
 
 app.MapGet("/health", () => Results.Ok(new
 {
@@ -221,7 +254,10 @@ app.MapGet("/health", () => Results.Ok(new
     time = DateTime.Now
 }));
 
-app.UseHangfireDashboard("/hangfire");
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = new[] { new HangfireDashboardAuthorizationFilter() }
+});
 
 app.MapControllers();
 

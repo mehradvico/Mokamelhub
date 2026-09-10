@@ -10,6 +10,7 @@ namespace Application.Services.ProductSrvs.DiscountSrv.IFace
         Task<BaseResultDto> ActiveAsync(DiscountDto discount);
         Task<BaseResultDto> DeleteAsync(long id);
         Task<BaseResultDto> FindAsyncDto(long id);
+        Task<BaseResultDto<DiscountVDto>> FindDetailAsync(long id);
         DiscountSearchDto Search(DiscountInputDto searchDto);
         Task SyncExpiredAsync();
 

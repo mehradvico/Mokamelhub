@@ -30,10 +30,10 @@ namespace Api.Areas.Admin.Controllers
         /// </summary>
         /// 
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(BaseResultDto<ProductCommentDto>), 200)]
+        [ProducesResponseType(typeof(BaseResultDto<ProductCommentVDto>), 200)]
         public async Task<IActionResult> Get(long id)
         {
-            var ProductComment = await ProductCommentService.FindAsyncDto(id);
+            var ProductComment = await ProductCommentService.FindDetailAsync(id);
             return Ok(ProductComment);
         }
         /// <summary>

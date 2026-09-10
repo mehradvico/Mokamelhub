@@ -41,6 +41,23 @@ namespace Application.Services.TicketItemSrv
             query = query.Where(s => s.TicketId == baseSearchDto.TicketId).OrderBy(s => s.Id).AsQueryable();
             return new TicketItemSearchDto(baseSearchDto, query, mapper);
         }
+
+        /// <summary>
+        /// Same as Search, but only for the EndUser area: a customer may only read the
+        /// items of a ticket they own, never another user's ticket by guessing its id.
+        /// </summary>
+        public async Task<TicketItemSearchDto> SearchForCurrentUser(TicketItemInputDto baseSearchDto)
+        {
+            var ticketBelongsToCurrentUser = await _context.Tickets.AnyAsync(
+                s => s.Id == baseSearchDto.TicketId && s.UserId == _currentUser.UserId);
+
+            if (!ticketBelongsToCurrentUser)
+            {
+                return new TicketItemSearchDto(baseSearchDto, Enumerable.Empty<TicketItem>().AsQueryable(), mapper);
+            }
+
+            return Search(baseSearchDto);
+        }
         public async Task<BaseResultDto> InsertAdminAsyncDto(TicketItemDto dto)
         {
 

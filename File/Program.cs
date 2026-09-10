@@ -44,7 +44,23 @@ builder.Services.AddControllers().AddViewLocalization(LanguageViewLocationExpand
 builder.Services.AddDbContext<IDataBaseContext, DataBaseContext>(p => p.UseSqlServer(builder.Configuration["connection"], x => x.UseNetTopologySuite()));
 builder.Services.AddApplicationServices();
 
-builder.Services.AddCors(option => option.AddPolicy("AllowAnyOrigin", b => b.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AppCorsPolicy", policy =>
+    {
+        policy
+            .WithOrigins(
+                "https://panel.mokamelhub.com",
+                "https://mokamelhub.com",
+                "https://www.mokamelhub.com",
+                "http://localhost:3000",
+                "http://localhost:3001",
+                "http://localhost:5173"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 
 builder.Services.AddAuthentication(Options =>
 {
@@ -110,6 +126,31 @@ builder.Services.Configure<FormOptions>(x =>
 });
 
 var app = builder.Build();
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler(errorApp =>
+    {
+        errorApp.Run(async context =>
+        {
+            var exceptionFeature = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerPathFeature>();
+            if (exceptionFeature?.Error != null)
+            {
+                context.RequestServices.GetRequiredService<ILogger<Program>>()
+                    .LogError(exceptionFeature.Error, "Unhandled exception on {Path}", exceptionFeature.Path);
+            }
+
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(
+                System.Text.Json.JsonSerializer.Serialize(
+                    new Application.Common.Dto.Result.BaseResultDto(
+                        isSuccess: false,
+                        val: Resource.Notification.Unsuccess)));
+        });
+    });
+}
+
 app.Use(async (context, next) =>
 {
     var host = context.Request.Host.Host;
@@ -123,7 +164,7 @@ app.Use(async (context, next) =>
     await next();
 });
 app.UseStaticFiles();
-app.UseCors("AllowAnyOrigin");
+app.UseCors("AppCorsPolicy");
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();

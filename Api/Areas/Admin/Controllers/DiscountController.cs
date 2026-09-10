@@ -32,11 +32,11 @@ namespace Api.Areas.Admin.Controllers
         /// <returns>
         /// </returns>
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(BaseResultDto<DiscountDto>), 200)]
+        [ProducesResponseType(typeof(BaseResultDto<DiscountVDto>), 200)]
         public async Task<IActionResult> Get(long id)
         {
 
-            var role = await discountService.FindAsyncDto(id);
+            var role = await discountService.FindDetailAsync(id);
             return Ok(role);
         }
         /// <summary>

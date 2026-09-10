@@ -11,6 +11,7 @@ namespace Application.Services.ProductSrvs.ProductCommentSrv.Iface
         Task<BaseResultDto> UpdateDtoAsync(ProductCommentDto dto);
         ProductCommentSearchDto Search(ProductCommentInputDto baseSearchDto);
         Task UpdateProductCommentRateAsync(long Id);
+        Task<BaseResultDto<ProductCommentVDto>> FindDetailAsync(long id);
 
     }
 }

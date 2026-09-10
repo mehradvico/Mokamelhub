@@ -76,6 +76,17 @@ namespace Application.Services.ProductSrvs.DiscountGroupSrv
             return new BaseResultDto<DiscountGroupVDto>(false, mapper.Map<DiscountGroupVDto>(item));
         }
 
+        public override BaseResultDto DeleteDto(long id)
+        {
+            var hasDiscounts = _context.Discounts.Any(s => s.DiscountGroupId == id && !s.Deleted);
+            if (hasDiscounts)
+            {
+                return new BaseResultDto(isSuccess: false, val: "این گروه تخفیف به یک یا چند قانون تخفیف فعال متصل است. ابتدا آن‌ها را حذف یا به گروه دیگری منتقل کنید.");
+            }
+
+            return base.DeleteDto(id);
+        }
+
 
     }
 }

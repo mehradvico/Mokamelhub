@@ -33,9 +33,9 @@ namespace Api.Areas.EndUser.Controllers
 
         [HttpGet]
         [ProducesResponseType(typeof(BaseInputDto), 200)]
-        public IActionResult Get([FromQuery] TicketItemInputDto dto)
+        public async Task<IActionResult> Get([FromQuery] TicketItemInputDto dto)
         {
-            var searchDto = TicketItemService.Search(dto);
+            var searchDto = await TicketItemService.SearchForCurrentUser(dto);
             return Ok(searchDto);
         }
         /// <summary>

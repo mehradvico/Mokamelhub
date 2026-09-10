@@ -959,7 +959,16 @@ namespace Resource {
                 return ResourceManager.GetString("TheUserAccountIsBlocked", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Too many failed login attempts. Please try again later..
+        /// </summary>
+        public static string TooManyFailedLoginAttempts {
+            get {
+                return ResourceManager.GetString("TooManyFailedLoginAttempts", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to This article has already been edited.
         /// </summary>

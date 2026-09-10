@@ -330,6 +330,9 @@
   <data name="TheUserAccountIsBlocked" xml:space="preserve">
     <value>حساب کاربری مسدود است</value>
   </data>
+  <data name="TooManyFailedLoginAttempts" xml:space="preserve">
+    <value>تعداد تلاش‌های ناموفق بیش از حد مجاز است؛ لطفاً کمی بعد دوباره تلاش کنید.</value>
+  </data>
   <data name="ThisArticleHasAlreadyBeenEdited" xml:space="preserve">
     <value>این مطلب قبلا ویرایش شده است</value>
   </data>

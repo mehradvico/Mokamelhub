@@ -330,6 +330,9 @@
   <data name="TheUserAccountIsBlocked" xml:space="preserve">
     <value>The user account is blocked</value>
   </data>
+  <data name="TooManyFailedLoginAttempts" xml:space="preserve">
+    <value>Too many failed login attempts. Please try again later.</value>
+  </data>
   <data name="ThisArticleHasAlreadyBeenEdited" xml:space="preserve">
     <value>This article has already been edited</value>
   </data>

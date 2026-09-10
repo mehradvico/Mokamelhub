@@ -484,7 +484,8 @@ namespace Application.Services.ProductSrvs.ProductSrv
             var parameters = new
             {
                 ProductCount = request.ProductCount,
-                ProductNotId = request.ProductNotId
+                ProductNotId = request.ProductNotId,
+                Q = request.Q
             };
 
             var query = $@"
@@ -492,7 +493,7 @@ DECLARE @Keywords TABLE (Keyword NVARCHAR(255));
 
 INSERT INTO @Keywords (Keyword)
 SELECT value
-FROM STRING_SPLIT(N'{request.Q}', ' ');
+FROM STRING_SPLIT(@Q, ' ');
 
 SELECT TOP(@ProductCount)
     p.Id,
@@ -547,9 +548,9 @@ WHERE
     AND p.Deleted = 0
     AND (p.Id != @ProductNotId OR @ProductNotId IS NULL)
     AND (
-        p.Name COLLATE Persian_100_CI_AS LIKE '%' + N'{request.Q}' + '%'
-        OR ISNULL(br.Name, '') COLLATE Persian_100_CI_AS LIKE '%' + N'{request.Q}' + '%'
-        OR ISNULL(br.SecondName, '') COLLATE Persian_100_CI_AS LIKE '%' + N'{request.Q}' + '%'
+        p.Name COLLATE Persian_100_CI_AS LIKE '%' + @Q + '%'
+        OR ISNULL(br.Name, '') COLLATE Persian_100_CI_AS LIKE '%' + @Q + '%'
+        OR ISNULL(br.SecondName, '') COLLATE Persian_100_CI_AS LIKE '%' + @Q + '%'
         OR EXISTS (
             SELECT 1
             FROM @Keywords k

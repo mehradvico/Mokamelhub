@@ -127,6 +127,26 @@ namespace Application.Services.ProductSrvs.DiscountSrv
             return new BaseResultDto(false, val: Resource.Notification.ResourceNotFind);
         }
 
+        public async Task<BaseResultDto<DiscountVDto>> FindDetailAsync(long id)
+        {
+            var discount = await _context.Discounts
+                .Include(s => s.Type)
+                .Include(s => s.Store)
+                .Include(s => s.Category)
+                .Include(s => s.Brand)
+                .Include(s => s.Product)
+                .Include(s => s.DiscountGroup)
+                .Include(s => s.ProductItem).ThenInclude(s => s.Product)
+                .Include(s => s.ProductItem).ThenInclude(s => s.VarietyItem)
+                .Include(s => s.ProductItem).ThenInclude(s => s.VarietyItem2)
+                .FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
+
+            if (discount == null)
+                return new BaseResultDto<DiscountVDto>(false, val: Resource.Notification.ResourceNotFind, data: null);
+
+            return new BaseResultDto<DiscountVDto>(true, mapper.Map<DiscountVDto>(discount));
+        }
+
 
         public async Task<BaseResultDto> InsertAsync(DiscountDto discount)
         {
@@ -217,8 +237,12 @@ namespace Application.Services.ProductSrvs.DiscountSrv
         public DiscountSearchDto Search(DiscountInputDto searchDto)
         {
             var query = _context.Discounts
+                .Include(s => s.Category)
+                .Include(s => s.Brand)
                 .Include(s => s.Product).ThenInclude(s => s.Category)
                 .Include(s => s.ProductItem).ThenInclude(s => s.Product).ThenInclude(s => s.Category)
+                .Include(s => s.ProductItem).ThenInclude(s => s.VarietyItem)
+                .Include(s => s.ProductItem).ThenInclude(s => s.VarietyItem2)
                 .Include(s => s.DiscountGroup)
                 .Where(s => !s.Deleted)
                 .AsQueryable();

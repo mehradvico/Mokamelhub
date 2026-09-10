@@ -40,17 +40,32 @@ namespace Api.Areas.EndUser.Controllers
         [ProducesResponseType(typeof(BaseResultDto<UserDto>), 200)]
         public async Task<IActionResult> Get(long id)
         {
-            var item = await userService.FindAsyncDto(id);
+            // A user may only ever fetch their own profile — the route id is ignored
+            // on purpose so a client can't read another user's data by changing it.
+            var item = await userService.FindAsyncDto(_currentUserHelper.CurrentUser.UserId);
             return Ok(item);
         }
 
         /// <summary>
-        /// ویرایش آیتم 
-        /// </summary>  
+        /// ویرایش آیتم
+        /// </summary>
         [HttpPut]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public IActionResult Put(UserDto userDto)
+        public async Task<IActionResult> Put(UserDto userDto)
         {
+            var currentUserId = _currentUserHelper.CurrentUser.UserId;
+
+            // Force the target to the caller's own account and re-assert the
+            // account's current role/lock state so a self-service edit can never
+            // retarget another user or self-escalate/self-unlock via this endpoint.
+            var current = await userService.FindAsyncDto(currentUserId);
+            if (!current.IsSuccess)
+                return Ok(current);
+
+            userDto.Id = currentUserId;
+            userDto.RoleId = current.Data.RoleId;
+            userDto.Locked = current.Data.Locked;
+
             var dto = userService.UpdateDto(userDto);
             return Ok(dto);
         }

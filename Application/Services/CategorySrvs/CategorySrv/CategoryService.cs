@@ -225,16 +225,16 @@ namespace Application.Services.CategorySrv
         }
         public List<long> GetAllParentIds(long id)
         {
-            string sqlQuery = $"WITH ParentCategories AS(SELECT Id, ParentId, Name FROM Categories WHERE Id = {id} UNION ALL SELECT c.Id, c.ParentId, c.Name FROM Categories c INNER JOIN ParentCategories pc ON c.Id = pc.ParentId) SELECT Id FROM ParentCategories";
+            const string sqlQuery = "WITH ParentCategories AS(SELECT Id, ParentId, Name FROM Categories WHERE Id = @Id UNION ALL SELECT c.Id, c.ParentId, c.Name FROM Categories c INNER JOIN ParentCategories pc ON c.Id = pc.ParentId) SELECT Id FROM ParentCategories";
             var connection = new SqlConnection(connectionString);
-            var categoryIds = connection.Query<long>(sqlQuery).ToList();
+            var categoryIds = connection.Query<long>(sqlQuery, new { Id = id }).ToList();
             return categoryIds;
         }
         public List<long> GetAllParentIds(string label)
         {
-            string sqlQuery = $"WITH ParentCategories AS(SELECT Id, ParentId, Name FROM Categories WHERE Label = {label} UNION ALL SELECT c.Id, c.ParentId, c.Name FROM Categories c INNER JOIN ParentCategories pc ON c.Id = pc.ParentId) SELECT Id FROM ParentCategories";
+            const string sqlQuery = "WITH ParentCategories AS(SELECT Id, ParentId, Name FROM Categories WHERE Label = @Label UNION ALL SELECT c.Id, c.ParentId, c.Name FROM Categories c INNER JOIN ParentCategories pc ON c.Id = pc.ParentId) SELECT Id FROM ParentCategories";
             var connection = new SqlConnection(connectionString);
-            var categoryIds = connection.Query<long>(sqlQuery).ToList();
+            var categoryIds = connection.Query<long>(sqlQuery, new { Label = label }).ToList();
             return categoryIds;
         }
         public async Task<List<CategoryVDto>> GetAllParents(long id, bool? active = null)
@@ -255,16 +255,16 @@ namespace Application.Services.CategorySrv
         }
         public List<long> GetAllChildrenIds(string label)
         {
-            string sqlQuery = $"WITH Recursives AS(SELECT id, name, parentID ,Active,Deleted FROM Categories WHERE label = '{label}' And Active=1 And Deleted=0  UNION ALL SELECT t.id, t.name, t.parentID,t.Active,t.Deleted FROM Categories t INNER JOIN Recursives r ON t.parentID = r.id)SELECT id FROM Recursives where Active=1 And Deleted=0";
+            const string sqlQuery = "WITH Recursives AS(SELECT id, name, parentID ,Active,Deleted FROM Categories WHERE label = @Label And Active=1 And Deleted=0  UNION ALL SELECT t.id, t.name, t.parentID,t.Active,t.Deleted FROM Categories t INNER JOIN Recursives r ON t.parentID = r.id)SELECT id FROM Recursives where Active=1 And Deleted=0";
             var connection = new SqlConnection(connectionString);
-            var categoryIds = connection.Query<long>(sqlQuery).ToList();
+            var categoryIds = connection.Query<long>(sqlQuery, new { Label = label }).ToList();
             return categoryIds;
         }
         public List<long> GetAllChildrenIds(long id)
         {
-            string sqlQuery = $"WITH Recursives AS(SELECT id, name, parentID ,Active,Deleted FROM Categories WHERE id = '{id}' And Active=1 And Deleted=0  UNION ALL SELECT t.id, t.name, t.parentID,t.Active,t.Deleted FROM Categories t INNER JOIN Recursives r ON t.parentID = r.id)SELECT id FROM Recursives where Active=1 And Deleted=0";
+            const string sqlQuery = "WITH Recursives AS(SELECT id, name, parentID ,Active,Deleted FROM Categories WHERE id = @Id And Active=1 And Deleted=0  UNION ALL SELECT t.id, t.name, t.parentID,t.Active,t.Deleted FROM Categories t INNER JOIN Recursives r ON t.parentID = r.id)SELECT id FROM Recursives where Active=1 And Deleted=0";
             var connection = new SqlConnection(connectionString);
-            var categoryIds = connection.Query<long>(sqlQuery).ToList();
+            var categoryIds = connection.Query<long>(sqlQuery, new { Id = id }).ToList();
             return categoryIds;
         }
         public BaseResultDto<List<CategorySiteMapDto>> GetSiteMap()
@@ -421,9 +421,9 @@ WHERE ct.Id IS NOT NULL;  -- اطمینان از وجود رکوردها
 
         public async Task<BaseResultDto<List<long>>> CategoryStore(long storeId)
         {
-            string sqlQuery = $"Select Distinct(categoriesid) From CategoryProduct cp  left join products p on cp.ProductsId=p.Id left join ProductItems pii on pii.ProductId=p.Id  where pii.StoreId={storeId}";
+            const string sqlQuery = "Select Distinct(categoriesid) From CategoryProduct cp  left join products p on cp.ProductsId=p.Id left join ProductItems pii on pii.ProductId=p.Id  where pii.StoreId=@StoreId";
             var connection = new SqlConnection(connectionString);
-            var result = await connection.QueryAsync<long>(sqlQuery);
+            var result = await connection.QueryAsync<long>(sqlQuery, new { StoreId = storeId });
             return new BaseResultDto<List<long>>(true, result.ToList());
         }
     }

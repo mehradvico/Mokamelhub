@@ -97,6 +97,14 @@ namespace Application.Services.ProductSrvs.ProductCommentSrv
             return new ProductCommentSearchDto(baseSearchDto, model, mapper);
         }
 
+        public async Task<BaseResultDto<ProductCommentVDto>> FindDetailAsync(long id)
+        {
+            var item = await _context.ProductComments.Include(s => s.Product).Include(s => s.User).FirstOrDefaultAsync(s => s.Id == id);
+            if (item == null)
+                return new BaseResultDto<ProductCommentVDto>(false, val: Resource.Notification.ResourceNotFind, data: null);
+            return new BaseResultDto<ProductCommentVDto>(true, mapper.Map<ProductCommentVDto>(item));
+        }
+
         private IQueryable<ProductComment> BaseSaerch(ProductCommentInputDto searchDto)
         {
             var query = _context.ProductComments.Include(s => s.Product).Include(s => s.User).AsQueryable();

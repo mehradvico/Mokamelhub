@@ -8,7 +8,7 @@ namespace File.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [AllowAnonymous]
+    [Authorize]
     public class FileUploadController : ControllerBase
     {
         private readonly IFileService fileService;

@@ -18,6 +18,7 @@ using AutoMapper;
 using Entities.Entities;
 using Entities.Entities.Security;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Persistence.Interface;
 using System;
@@ -37,8 +38,12 @@ namespace Application.Services.UserSrv
         private readonly IRegixHelper RegixHelper;
         private readonly IBaseDetailService _baseDetailService;
         private readonly IMessageSenderService _messageSenderService;
+        private readonly IMemoryCache _cache;
 
-        public UserService(IDataBaseContext _context, IUserTokenService userTokenSevice, IOtpVerifyService otpVerifyService, IMapper mapper, IConfiguration configuration, IRegixHelper RegixHelper, IBaseDetailService baseDetailService, IMessageSenderService messageSenderService) : base(_context, mapper)
+        private const int MaxLoginAttempts = 5;
+        private static readonly TimeSpan LoginLockoutWindow = TimeSpan.FromMinutes(15);
+
+        public UserService(IDataBaseContext _context, IUserTokenService userTokenSevice, IOtpVerifyService otpVerifyService, IMapper mapper, IConfiguration configuration, IRegixHelper RegixHelper, IBaseDetailService baseDetailService, IMessageSenderService messageSenderService, IMemoryCache cache) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
@@ -48,6 +53,7 @@ namespace Application.Services.UserSrv
             this.RegixHelper = RegixHelper;
             this._baseDetailService = baseDetailService;
             this._messageSenderService = messageSenderService;
+            this._cache = cache;
         }
         public override async Task<BaseResultDto<UserDto>> InsertAsyncDto(UserDto dto)
         {
@@ -99,7 +105,7 @@ namespace Application.Services.UserSrv
                         return new BaseResultDto<UserDto>(isSuccess: false, messages: errors, dto);
                     }
 
-                    dto.Password = dto.Password?.Tosha256Hash();
+                    dto.Password = dto.Password?.ToPasswordHash();
                     var item = mapper.Map<User>(dto);
                     item.CreateDate = DateTime.Now;
 
@@ -195,7 +201,7 @@ namespace Application.Services.UserSrv
                     }
                     else
                     {
-                        newPasswordHash = dto.Password.Tosha256Hash();
+                        newPasswordHash = dto.Password.ToPasswordHash();
                     }
                 }
 
@@ -282,35 +288,32 @@ namespace Application.Services.UserSrv
             {
                 query = query.Where(s => s.FirstName.Contains(searchDto.Q) || s.LastName.Contains(searchDto.Q) || s.Mobile.Contains(searchDto.Q));
             }
-            if (searchDto.SortBy != Common.Enumerable.SortEnum.Default)
+            switch (searchDto.SortBy)
             {
-                switch (searchDto.SortBy)
-                {
-                    case Common.Enumerable.SortEnum.Default:
-                        {
-                            query = query.OrderByDescending(s => s.Id);
+                case Common.Enumerable.SortEnum.Default:
+                    {
+                        query = query.OrderByDescending(s => s.Id);
 
-                            break;
-                        }
-                    case Common.Enumerable.SortEnum.New:
-                        {
-                            query = query.OrderByDescending(s => s.Id);
-                            break;
-                        }
-                    case Common.Enumerable.SortEnum.Old:
-                        {
-                            query = query.OrderBy(s => s.Id);
-                            break;
-                        }
-                    case Common.Enumerable.SortEnum.Name:
-                        {
-                            query = query.OrderByDescending(s => s.LastName);
-                            break;
-                        }
-
-                    default:
                         break;
-                }
+                    }
+                case Common.Enumerable.SortEnum.New:
+                    {
+                        query = query.OrderByDescending(s => s.Id);
+                        break;
+                    }
+                case Common.Enumerable.SortEnum.Old:
+                    {
+                        query = query.OrderBy(s => s.Id);
+                        break;
+                    }
+                case Common.Enumerable.SortEnum.Name:
+                    {
+                        query = query.OrderByDescending(s => s.LastName);
+                        break;
+                    }
+
+                default:
+                    break;
             }
 
             return new UserSearchDto(searchDto, query, mapper);
@@ -333,12 +336,67 @@ namespace Application.Services.UserSrv
             {
                 return new BaseResultDto(isSuccess: true);
             }
-            else if ((!string.IsNullOrEmpty(area)) && (area.ToLower().Equals("admin")) && !userToken.User.Role.Permissions.Any(s => s.Area.ToLower().Equals(area.ToLower()) && s.Controller.ToLower().Equals(controller.ToLower()) && s.Action.ToLower().Equals(action.ToLower())))
-                return new BaseResultDto(isSuccess: false, val: Resource.Notification.YouHaveNotPermission);
+            else if (!string.IsNullOrEmpty(area) && area.ToLower().Equals("admin"))
+            {
+                // Default-deny for the admin area: a non-admin caller needs an explicit
+                // Permission row. If routing somehow didn't resolve controller/action for
+                // an admin-area request, treat that the same as "no matching permission"
+                // instead of letting it through or throwing on the null .ToLower() below.
+                var hasPermission = !string.IsNullOrEmpty(controller) && !string.IsNullOrEmpty(action) &&
+                    userToken.User.Role.Permissions.Any(s =>
+                        s.Area.ToLower().Equals(area.ToLower()) &&
+                        s.Controller.ToLower().Equals(controller.ToLower()) &&
+                        s.Action.ToLower().Equals(action.ToLower()));
+
+                if (!hasPermission)
+                    return new BaseResultDto(isSuccess: false, val: Resource.Notification.YouHaveNotPermission);
+
+                return new BaseResultDto(isSuccess: true);
+            }
             else
             {
                 return new BaseResultDto(isSuccess: true);
             }
+        }
+
+        private string LoginLockoutCacheKey(string mobile) => $"login-fail:{mobile}";
+
+        private bool IsLoginLockedOut(string mobile)
+        {
+            var attempts = _cache.Get<int?>(LoginLockoutCacheKey(mobile)) ?? 0;
+            return attempts >= MaxLoginAttempts;
+        }
+
+        private void RegisterFailedLoginAttempt(string mobile)
+        {
+            var key = LoginLockoutCacheKey(mobile);
+            var attempts = (_cache.Get<int?>(key) ?? 0) + 1;
+            _cache.Set(key, attempts, LoginLockoutWindow);
+        }
+
+        private void ResetLoginAttempts(string mobile)
+        {
+            _cache.Remove(LoginLockoutCacheKey(mobile));
+        }
+
+        /// <summary>
+        /// Verifies the password against the stored hash (new PBKDF2 format or legacy
+        /// unsalted SHA-256). On a successful legacy-format match, transparently upgrades
+        /// the stored hash to PBKDF2 so accounts migrate off the weak format on next login.
+        /// </summary>
+        private bool VerifyAndUpgradePassword(User item, string plainPassword)
+        {
+            if (!plainPassword.VerifyPasswordHash(item.Password))
+                return false;
+
+            if (item.Password.IsLegacyPasswordHash())
+            {
+                item.Password = plainPassword.ToPasswordHash();
+                _context.Users.Update(item);
+                _context.SaveChanges();
+            }
+
+            return true;
         }
 
         public async Task<BaseResultDto> SignIn(SignInDto user)
@@ -350,11 +408,16 @@ namespace Application.Services.UserSrv
             user.Mobile = await user.Mobile.ToEnglishDigitsAsync();
             user.Password = await user.Password.ToEnglishDigitsAsync();
             user.Code = await user.Code.ToEnglishDigitsAsync();
-            string hashedPassword = "";
+
+            if (IsLoginLockedOut(user.Mobile))
+                return new BaseResultDto(isSuccess: false, val: Resource.Notification.TooManyFailedLoginAttempts);
 
             var item = await _context.Users.Include(s => s.Role).FirstOrDefaultAsync(x => (!string.IsNullOrEmpty(x.Mobile) && x.Mobile == user.Mobile) || (!string.IsNullOrEmpty(x.Email) && x.Email == user.Mobile));
             if (item == null)
+            {
+                RegisterFailedLoginAttempt(user.Mobile);
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.UserNotFound);
+            }
             else if (item.Deleted)
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.UserNotFound);
             else if (item.Locked)
@@ -370,10 +433,9 @@ namespace Application.Services.UserSrv
                 }
                 if (string.IsNullOrEmpty(user.Password))
                     return new BaseResultDto(isSuccess: false, val1: Resource.Notification.PleaseEnterThePassword, val2: nameof(user.Password));
-                else
-                    hashedPassword = user.Password.Tosha256Hash();
-                if (item.Password != hashedPassword)
+                if (!VerifyAndUpgradePassword(item, user.Password))
                 {
+                    RegisterFailedLoginAttempt(user.Mobile);
                     return new BaseResultDto(isSuccess: false, val: Resource.Notification.UserNotFound);
                 }
             }
@@ -392,17 +454,17 @@ namespace Application.Services.UserSrv
                 {
                     if (string.IsNullOrEmpty(user.Password))
                         return new BaseResultDto(isSuccess: false, val1: Resource.Notification.PleaseEnterThePassword, val2: nameof(user.Password));
-                    else
-                        hashedPassword = user.Password.Tosha256Hash();
 
-                    if (item.Password != hashedPassword)
+                    if (!VerifyAndUpgradePassword(item, user.Password))
                     {
+                        RegisterFailedLoginAttempt(user.Mobile);
                         return new BaseResultDto(isSuccess: false, val: Resource.Notification.UserNotFound);
                     }
                 }
 
             }
 
+            ResetLoginAttempts(user.Mobile);
             var token = userTokenSevice.CreateToken(item, user.IsAdmin);
             await ChangUserCartAsync(item.Id, user.CartCode);
             return new BaseResultDto<UserTokenDto>(isSuccess: true, data: token);
@@ -450,15 +512,14 @@ namespace Application.Services.UserSrv
 
             user.Mobile = await user.Mobile.ToEnglishDigitsAsync();
             user.OldPassword = await user.OldPassword.ToEnglishDigitsAsync();
-            user.OldPassword = user.OldPassword.Tosha256Hash();
-            var item = await _context.Users.FirstOrDefaultAsync(s => (s.Mobile == user.Mobile || s.Email == user.Mobile) && s.Password == user.OldPassword);
-            if (item == null)
+            var item = await _context.Users.FirstOrDefaultAsync(s => s.Mobile == user.Mobile || s.Email == user.Mobile);
+            if (item == null || !user.OldPassword.VerifyPasswordHash(item.Password))
             {
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.InvalidData);
             }
             else
             {
-                item.Password = user.NewPassword.Tosha256Hash();
+                item.Password = user.NewPassword.ToPasswordHash();
                 _context.Users.Update(item);
                 _context.SaveChanges();
                 return await userTokenSevice.ResetTokenAsync(item);
@@ -518,7 +579,7 @@ namespace Application.Services.UserSrv
 
                 item.RequestCode = null;
                 item.RequestCodeTryCount = 0;
-                item.Password = dto.Password.Tosha256Hash();
+                item.Password = dto.Password.ToPasswordHash();
                 _context.Users.Update(item);
                 _context.SaveChanges();
                 return await userTokenSevice.ResetTokenAsync(item);
